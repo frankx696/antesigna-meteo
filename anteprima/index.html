@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chi comanda il tempo</title>
+<meta name="theme-color" content="#000000">
+<style>
+/* ===== Modulo "Chi comanda il tempo" – tutto lo stile è sotto .cc per non toccare l'applicazione ===== */
+:root{color-scheme:dark}
+html,body{margin:0;background:#000;color:#e6e8eb;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+.cc{--bg:#000;--card:#111419;--card2:#171b21;--line:#262a30;--line2:#323843;--tx:#e6e8eb;--mu:#8b949e;--mu2:#6e7781;--ac:#4da3ff;--ac2:#9cc9ff;
+  --v-pioggia:#4da3ff;--v-temperatura:#ff7466;--v-vento:#5fe0b6;--v-umidita:#cfd6de;
+  color:var(--tx);font-size:15px;line-height:1.45;padding:14px 16px calc(28px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;box-sizing:border-box}
+.cc *{box-sizing:border-box}
+.cc button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+.cc-h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:4px 0 2px}
+.cc-sub{color:var(--mu);font-size:14px;margin:0 0 12px}
+.cc-esempio{display:inline-block;margin:0 0 10px;padding:4px 10px;border-radius:999px;background:#3a2a12;color:#ffd166;font-size:12px;font-weight:600}
+.cc-seg{display:flex;background:#15181d;border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;margin:0 0 12px}
+.cc-seg button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--mu);font-weight:600;font-size:15px}
+.cc-seg button[aria-pressed=true]{background:#13263a;color:#fff;box-shadow:inset 0 0 0 1px #1f3a57}
+.cc-frase{font-size:15px;line-height:1.5;margin:0 0 12px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ac)}
+.cc-frase b{color:#fff}
+/* striscia dei giorni */
+.cc-giorni{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;margin:0 -16px 12px;padding:2px 16px 4px;scroll-padding:16px}
+.cc-giorni::-webkit-scrollbar{display:none}
+.cc-g{flex:0 0 auto;width:54px;min-height:78px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:6px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cc-g .gs{font-size:11px;color:var(--mu);text-transform:capitalize}
+.cc-g .gd{font-size:15px;font-weight:700;color:#fff;line-height:1.1}
+.cc-g .gb{width:30px;height:26px;border-radius:5px;margin-top:3px;position:relative;overflow:hidden;background:#20252c;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+.cc-g .gb i+i{border-top:1px solid rgba(0,0,0,.55)}
+.cc-g .gb i{position:absolute;left:0;right:0;bottom:0;display:block}
+.cc-g .gp{font-size:11px;color:var(--mu);font-variant-numeric:tabular-nums}
+.cc-g[aria-pressed=true]{border-color:var(--ac);background:#0f2236;box-shadow:0 0 0 1px var(--ac)}
+.cc-g[aria-pressed=true] .gp{color:#cfe6ff}
+/* strati */
+.cc-strati{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 10px;align-items:center}
+
+.cc-chip{min-height:36px;padding:0 11px;border-radius:999px;border:1px solid var(--line2);background:#15181d;color:var(--mu);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;position:relative}
+.cc-chip::after{content:"";position:absolute;inset:-5px -2px}
+.cc-chip[aria-pressed=true]{background:#13263a;border-color:#2b5b8a;color:#fff}
+.cc-chip .pt{width:8px;height:8px;border-radius:50%;display:inline-block}
+/* mappa */
+.cc-mappa{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#05080c;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.cc-mappa svg{display:block;width:100%;height:100%}
+.cc-mappa.zoom{touch-action:none}
+.cc-ctl{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.cc-ctl button,.cc-leg-b{width:44px;height:44px;border-radius:12px;border:1px solid #2a3038;background:rgba(17,20,25,.88);color:#cfe6ff;font-size:22px;font-weight:500;display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.cc-leg-b{position:absolute;left:8px;bottom:8px;width:auto;height:36px;padding:0 11px 0 8px;font-size:13px;font-weight:600;gap:6px;z-index:2;border-radius:18px}
+.cc-leg-b::after{content:"";position:absolute;inset:-4px}
+.cc-vb svg{display:block}
+.cc-leg-b b{display:inline-flex;width:18px;height:18px;border-radius:50%;border:1.5px solid #9cc9ff;align-items:center;justify-content:center;font:700 11px/1 Georgia,serif;color:#9cc9ff}
+.cc-titmap{position:absolute;left:0;top:0;right:0;z-index:1;pointer-events:none;font-size:12px;color:#c9d1d9;padding:9px 64px 22px 11px;background:linear-gradient(rgba(5,8,12,.88),rgba(5,8,12,.55) 65%,rgba(5,8,12,0));text-shadow:0 1px 2px #000}
+.cc-titmap i{display:block;font-style:normal;color:#ffd9a0;margin-top:2px}
+.cc-titmap b{display:block;font-size:14px;color:#fff}
+.cc-lim{font-size:13px;color:var(--mu);margin:10px 2px 16px;line-height:1.45}
+.cc-lim b{color:#c9d1d9}
+/* sezioni */
+.cc-sez{margin:18px 0 8px;font-size:17px;font-weight:700;color:#fff}
+.cc-sez small{display:block;font-size:13px;font-weight:400;color:var(--mu);margin-top:2px}
+.cc-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.cc-reg{display:flex;flex-direction:column;gap:6px}
+.cc-r{display:grid;grid-template-columns:14px 1fr 46px;grid-template-areas:"d n p" ". b b";align-items:center;column-gap:10px;row-gap:6px;min-height:48px;padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);text-align:left}
+.cc-r .dot{grid-area:d}.cc-r .nm{grid-area:n}.cc-r .bar{grid-area:b}.cc-r .pc{grid-area:p;font-size:15px!important;color:#e6e8eb!important;font-weight:600}
+.cc-r .dot{width:12px;height:12px;border-radius:50%}
+.cc-r .nm{font-weight:600;font-size:14px;line-height:1.25}
+.cc-r .nm small{display:block;font-weight:400;color:var(--mu);font-size:12px}
+.cc-r .bar{height:6px;border-radius:4px;background:#232830;overflow:hidden}
+.cc-r .bar i{display:block;height:100%;border-radius:4px}
+.cc-r .pc{font-size:13px;color:var(--mu);text-align:right;font-variant-numeric:tabular-nums}
+.cc-r[aria-pressed=true]{border-color:var(--ac);background:#0f2236}
+.cc-r.auto{grid-template-areas:"d n n"}
+.cc-filtri{display:flex;flex-direction:column;gap:12px}
+.cc-riga{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cc-lab{font-size:13px;color:var(--mu);width:100%}
+.cc-range{display:flex;align-items:center;gap:10px}
+.cc-range input{flex:1;height:44px;accent-color:var(--ac)}
+.cc-range output{width:130px;text-align:right;font-size:13px;color:#cfe6ff;font-variant-numeric:tabular-nums}
+.cc-tog{display:flex;align-items:center;justify-content:space-between;min-height:44px;gap:10px;font-size:14px;border:0;background:transparent;padding:0;width:100%;text-align:left}
+.cc-tog .sw{width:50px;height:30px;border-radius:15px;background:#2a2f37;position:relative;flex:0 0 auto;transition:background .2s}
+.cc-tog .sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+.cc-tog[aria-pressed=true] .sw{background:#2f7fe0}
+.cc-tog[aria-pressed=true] .sw::after{transform:translateX(20px)}
+/* foglio dal basso */
+.cc-velo{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:80;opacity:0;pointer-events:none;transition:opacity .2s}
+.cc-velo.on{opacity:1;pointer-events:auto}
+.cc-foglio{position:fixed;left:0;right:0;bottom:0;z-index:90;max-height:60vh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#12161b;border-top:1px solid #2b313a;border-radius:18px 18px 0 0;padding:6px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);box-shadow:0 -12px 40px rgba(0,0,0,.6);max-width:720px;margin:0 auto}
+.cc-foglio.on{transform:none;visibility:visible}
+.cc-foglio:not(.on){visibility:hidden;transition:transform .28s,visibility 0s .3s}
+.cc-maniglia{width:40px;height:5px;border-radius:3px;background:#3a414b;margin:4px auto 6px}
+.cc-fx{position:sticky;top:0;float:right;width:44px;height:44px;border-radius:50%;border:0;background:#20252c;color:#cfd6de;font-size:22px;margin:-2px -6px 0 8px;z-index:2}
+.cc-ft{font-size:20px;font-weight:700;color:#fff;margin:2px 0 2px;line-height:1.25}
+.cc-fs{color:var(--mu);font-size:14px;margin:0 0 10px}
+.cc-blocchi{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.cc-bl{background:#191e25;border:1px solid #262c35;border-radius:12px;padding:9px 10px}
+.cc-bl .k{font-size:12px;color:var(--mu)}
+.cc-bl .v{font-size:18px;font-weight:700;color:#fff;line-height:1.25;display:flex;align-items:center;gap:6px}
+.cc-bl .v small{font-size:12px;font-weight:500;color:var(--mu)}
+.cc-p{margin:8px 0;font-size:15px;line-height:1.5}
+.cc-p b{color:#fff}
+.cc-elenco{display:flex;flex-direction:column;gap:6px;margin:6px 0 4px}
+.cc-el{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 10px;border-radius:10px;background:#191e25;border:1px solid #262c35;text-align:left;width:100%}
+.cc-el .sg{width:28px;height:6px;border-radius:3px;flex:0 0 auto}
+.cc-el span{flex:1;font-size:14px;line-height:1.3}
+.cc-el small{color:var(--mu);font-size:12px;white-space:nowrap}
+.cc-tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;background:#20262e;color:#cfd6de;margin:0 4px 4px 0}
+.cc-leg h4{margin:14px 0 6px;font-size:14px;color:#fff}
+.cc-leg .lr{display:flex;align-items:center;gap:10px;font-size:13px;color:#c9d1d9;margin:5px 0}
+.cc-leg svg{flex:0 0 auto}
+/* modi */
+.cc-mcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:12px 0 0}
+.cc-mtop{display:flex;align-items:center;gap:8px}
+.cc-mtop button{width:44px;height:44px;flex:0 0 auto;border-radius:12px;border:1px solid var(--line2);background:#15181d;color:#cfe6ff;font-size:22px}
+.cc-mtop .mt{flex:1;min-width:0;text-align:center}
+.cc-mtop .mt b{display:block;font-size:17px;color:#fff;line-height:1.25}
+.cc-mtop .mt small{font-size:12px;color:var(--mu)}
+.cc-miniature{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:10px -12px 0;padding:2px 12px 4px}
+.cc-miniature::-webkit-scrollbar{display:none}
+.cc-mini{flex:0 0 auto;width:72px;border:1px solid var(--line);background:#0a0d11;border-radius:10px;padding:3px 3px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cc-mini canvas{width:64px;height:76px;display:block;border-radius:6px}
+.cc-mini span{font-size:10.5px;color:#c9d1d9;line-height:1.15;text-align:center;height:2.3em;overflow:hidden}
+.cc-mini[aria-pressed=true]{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac);background:#0f2236}
+.cc-albero{display:grid;grid-template-columns:.9fr 1.1fr .95fr 1.1fr;gap:3px}
+.cc-nodoal{border:1px solid #2a3038;border-radius:8px;background:#151a20;padding:6px 6px;font-size:12px;line-height:1.2;text-align:left;min-height:44px;display:flex;flex-direction:column;justify-content:flex-start;border-left-width:4px;overflow:hidden;color:#dfe4ea}
+.cc-nodoal small{color:var(--mu);font-size:10.5px}
+.cc-nodoal{overflow-wrap:normal;word-break:keep-all;font-size:11.5px;padding:6px 4px 6px 5px}
+@media (max-width:380px){.cc-nodoal{font-size:10.5px;letter-spacing:-.25px;padding:6px 2px 6px 4px}.cc-chip{padding:0 9px;font-size:12.5px}.cc-strati{gap:4px}.cc-albero,.cc-albtit{gap:2px}}
+.cc-nodoal canvas{width:100%;max-width:64px;height:auto;margin-top:8px;border-radius:5px;display:block}
+.cc-nodoal[aria-pressed=true]{background:#0f2236;border-color:var(--ac);border-left-color:var(--ac);color:#fff}
+.cc-albtit{display:grid;grid-template-columns:.9fr 1.1fr .95fr 1.1fr;gap:3px;margin:0 0 4px;font-size:11px;color:var(--mu);text-align:center}
+.cc-mat{width:100%}
+.cc-mat text{font-family:inherit}
+.cc-nota{font-size:12.5px;color:var(--mu);margin:6px 0 0}
+@media (prefers-reduced-motion: reduce){.cc *{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="modulo"></div>
+<script>
+/* =====================================================================
+   montaCausalita(elemento, dati)
+   dati = { causalita: <causalita.json>, modi: <modi.json>, cartina: <piemonte.json> }
+   Disegna la sezione "Chi comanda il tempo" dentro elemento. Nessuna libreria esterna.
+   ===================================================================== */
+function montaCausalita(EL, DATI){
+"use strict";
+var C = DATI.causalita, MO = DATI.modi, K = DATI.cartina;
+var NS = "http://www.w3.org/2000/svg";
+var RIDUCI_TMP, RIDUCI = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+var PR = K.proiezione, BOX = K.riquadro_km;
+function proj(lat, lon){ return [(lon - PR.lon0) * PR.km_per_grado_lon, -(lat - PR.lat0) * PR.km_per_grado_lat]; }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function num(x, d){ return (d == null ? Math.round(x) : x.toFixed(d)).toString().replace(".", ","); }
+function pct(x){ return Math.round(x * 100) + " %"; }
+
+/* ---------------- costanti grafiche ---------------- */
+var VAR = {pioggia:{nome:"pioggia", col:"#4da3ff"}, temperatura:{nome:"temperatura", col:"#ff7466"}, vento:{nome:"vento", col:"#5fe0b6"}, umidita:{nome:"umidità e nebbia", col:"#cfd6de"}};
+var RIT = [ {max:2, col:"#fff1a8", nome:"0–2 ore", dur:1.1}, {max:6, col:"#ffc23d", nome:"3–6 ore", dur:1.6}, {max:12, col:"#ff8336", nome:"7–12 ore", dur:2.2},
+            {max:24, col:"#f2508c", nome:"13–24 ore", dur:3}, {max:1e9, col:"#b685ff", nome:"oltre 24 ore", dur:4} ];
+function ritBin(h){ for (var i = 0; i < RIT.length; i++) if (h <= RIT[i].max) return i; return RIT.length - 1; }
+var TIPO = {casa:"casa", stazione:"stazione al suolo", quota:"punto in quota (griglia dei modelli)", radar:"radar meteorologico", area:"area sorvegliata"};
+var GSETT = ["dom","lun","mar","mer","gio","ven","sab"], GSETT_L = ["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
+var MESI = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+function dt(s){ var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function giornoLungo(i){ var d = dt(C.giorni[i].data); return GSETT_L[d.getDay()] + " " + d.getDate() + " " + MESI[d.getMonth()]; }
+function bussola(g){ var n = ["nord","nord-est","est","sud-est","sud","sud-ovest","ovest","nord-ovest"]; return n[Math.round(((g % 360) + 360) % 360 / 45) % 8]; }
+function forzaParola(f){ return f >= .6 ? "forte" : f >= .35 ? "media" : "debole"; }
+function sicuroParola(s){ return s >= .85 ? "molto sicuro" : s >= .6 ? "abbastanza sicuro" : "incerto"; }
+function ore(h){ return h <= 0 ? "meno di un'ora" : h == 1 ? "1 ora" : h < 48 ? num(h) + " ore" : "circa " + num(h / 24) + " giorni"; }
+
+/* ---------------- indici dei dati ---------------- */
+var NODI = {}, CASA = C.meta.casa_id;
+C.nodi.forEach(function(n){ var p = proj(n.lat, n.lon); n.x = p[0]; n.y = p[1]; NODI[n.id] = n;
+  var dx = n.x, dy = -n.y; n.dist = Math.hypot(dx, dy); n.dir = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360; });
+var REG = {}; C.regimi.forEach(function(r){ REG[r.id] = r; });
+var ARCHI = C.archi; ARCHI.forEach(function(a, i){ a.i = i; });
+var COMP = {}; MO.componenti.forEach(function(c){ COMP[c.id] = c; });
+var PUNTI = MO.punti.map(function(p){ var q = proj(p.lat, p.lon); return {x:q[0], y:q[1]}; });
+
+/* ---------------- stato ---------------- */
+var S = { vista: "legami", giorno: 0, regime: null /* null = automatico */, variabile: "tutte", fmin: 0.15, soloCasa: false,
+          strati: {legami: true, modo: false, rilievo: true, nomi: true}, livello: 8, modo: null, sel: null };
+
+/* ---------------- struttura della pagina ---------------- */
+EL.innerHTML = "";
+var R = document.createElement("div"); R.className = "cc"; EL.appendChild(R);
+R.innerHTML =
+  '<div class="cc-h1">Chi comanda il tempo</div>' +
+  '<p class="cc-sub">Quali luoghi attorno a casa anticipano il tempo che arriverà, e i modi ricorrenti del tempo in Piemonte.</p>' +
+  (C.esempio || MO.esempio ? '<div class="cc-esempio" title="' + esc(C.avviso_esempio) + '">Dati di esempio: la grafica è vera, i numeri no</div>' : '') +
+  '<div class="cc-seg" role="tablist"><button data-v="legami" aria-pressed="true">Chi anticipa casa</button><button data-v="modi" aria-pressed="false">Modi del tempo</button></div>' +
+  '<div class="cc-frase" id="cc-frase"></div>' +
+  '<div class="cc-giorni" id="cc-giorni" aria-label="Giorni della previsione"></div>' +
+  '<div class="cc-strati" id="cc-strati"></div>' +
+  '<div class="cc-mappa" id="cc-mappa"><svg id="cc-svg" aria-label="Cartina del Piemonte con i legami"></svg>' +
+    '<div class="cc-titmap" id="cc-titmap"></div>' +
+    '<div class="cc-ctl"><button id="cc-piu" aria-label="Ingrandisci">+</button><button id="cc-meno" aria-label="Rimpicciolisci">−</button><button id="cc-vista" aria-label="Dintorni di casa" class="cc-vb"></button></div>' +
+    '<button class="cc-leg-b" id="cc-legb" aria-label="Legenda"><b>i</b>Legenda</button></div>' +
+  '<div id="cc-sotto"></div>' +
+  '<div class="cc-velo" id="cc-velo"></div><div class="cc-foglio" id="cc-foglio" role="dialog" aria-modal="false"></div>';
+function $(id){ return R.querySelector("#" + id); }
+var MAP = $("cc-mappa"), SVG = $("cc-svg"), FOGLIO = $("cc-foglio"), VELO = $("cc-velo");
+
+/* ---------------- cartina di base (in km, trasformata come gruppo) ---------------- */
+var W = 0, H = 0, s0 = 1, V = {k: 1, tx: 0, ty: 0};
+var gBase, gOver, gField, imgField, imgOmbra;
+function el(tag, at, par){ var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); if (par) par.appendChild(e); return e; }
+function costruisciBase(){
+  SVG.innerHTML = "";
+  var defs = el("defs", {}, SVG);
+  var cp = el("clipPath", {id: "cc-clip-pie"}, defs); el("path", {d: K.regioni["Piemonte"]}, cp);
+  RIT.forEach(function(r, i){
+    var m = el("marker", {id: "cc-fr" + i, viewBox: "0 0 10 10", refX: "7", refY: "5", markerWidth: "3.6", markerHeight: "3.6", orient: "auto-start-reverse", markerUnits: "strokeWidth"}, defs);
+    el("path", {d: "M0 0L10 5L0 10L2.5 5z", fill: r.col}, m);
+  });
+  el("rect", {x: 0, y: 0, width: "100%", height: "100%", fill: "#06101b"}, SVG); // mare
+  gBase = el("g", {}, SVG);
+  // terre emerse (stati) e regioni
+  var colStati = {ITA: "#0b0e12", FRA: "#0a0c0f", CHE: "#0a0c0f", MCO: "#0a0c0f"};
+  for (var s in K.stati) el("path", {d: K.stati[s], fill: colStati[s] || "#0a0c0f"}, gBase);
+  el("path", {d: K.regioni["Piemonte"], fill: "#10151b"}, gBase);
+  // fasce di quota: grigio-azzurro crescente
+  var fcol = ["#141b23", "#18212b", "#1d2833", "#24303c", "#2e3a47"];
+  var gF = el("g", {id: "cc-fasce"}, gBase);
+  K.fasce_quota.forEach(function(f, i){ el("path", {d: f.d, fill: fcol[i], "fill-rule": "evenodd", opacity: .9}, gF); });
+  // ombreggiatura
+  imgOmbra = el("image", {x: K.ombreggiatura.riquadro_km[0], y: K.ombreggiatura.riquadro_km[1], width: K.ombreggiatura.riquadro_km[2] - K.ombreggiatura.riquadro_km[0], height: K.ombreggiatura.riquadro_km[3] - K.ombreggiatura.riquadro_km[1], preserveAspectRatio: "none", opacity: .85}, gBase);
+  preparaOmbra(function(url){ imgOmbra.setAttribute("href", url); });
+  // campo del modo (sopra il rilievo, ritagliato sul Piemonte)
+  gField = el("g", {"clip-path": "url(#cc-clip-pie)"}, gBase);
+  imgField = el("image", {preserveAspectRatio: "none", opacity: .8}, gField);
+  // fuori dal Piemonte la cartina si spegne un po'
+  el("path", {d: "M" + (BOX[0]-50) + " " + (BOX[1]-50) + "H" + (BOX[2]+50) + "V" + (BOX[3]+50) + "H" + (BOX[0]-50) + "Z" + K.regioni["Piemonte"], fill: "#000", "fill-opacity": .42, "fill-rule": "evenodd"}, gBase);
+  // laghi e fiumi
+  K.laghi.forEach(function(l){ el("path", {d: l.d, fill: "#0f2a45", stroke: "#2f6aa3", "stroke-width": .8, "vector-effect": "non-scaling-stroke"}, gBase); });
+  K.fiumi.forEach(function(f){ el("path", {d: f.d, fill: "none", stroke: "#2c77c0", "stroke-width": f.nome == "Po" ? 1.7 : 1.1, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: .85, "vector-effect": "non-scaling-stroke"}, gBase); });
+  // confini
+  for (var r in K.regioni) if (r != "Piemonte") el("path", {d: K.regioni[r], fill: "none", stroke: "#39414c", "stroke-width": .8, "vector-effect": "non-scaling-stroke"}, gBase);
+  for (var s2 in K.stati) if (s2 != "ITA") el("path", {d: K.stati[s2], fill: "none", stroke: "#56606d", "stroke-width": 1, "stroke-dasharray": "5 3", "vector-effect": "non-scaling-stroke"}, gBase);
+  el("path", {d: K.regioni["Piemonte"], fill: "none", stroke: "#7f93ab", "stroke-width": 1.4, "stroke-linejoin": "round", "vector-effect": "non-scaling-stroke"}, gBase);
+  gOver = el("g", {}, SVG);
+}
+function preparaOmbra(cb){
+  var im = new Image();
+  im.onload = function(){
+    var c = document.createElement("canvas"); c.width = im.width; c.height = im.height;
+    var x = c.getContext("2d"); x.drawImage(im, 0, 0);
+    var d = x.getImageData(0, 0, c.width, c.height), a = d.data;
+    for (var i = 0; i < a.length; i += 4){
+      var v = a[i] - 128;
+      if (v >= 0){ a[i] = 225; a[i+1] = 235; a[i+2] = 250; a[i+3] = Math.min(255, v * .62); }
+      else { a[i] = 0; a[i+1] = 4; a[i+2] = 10; a[i+3] = Math.min(255, -v * 1.35); }
+    }
+    x.putImageData(d, 0, 0); cb(c.toDataURL());
+  };
+  im.src = "data:image/jpeg;base64," + K.ombreggiatura.jpg_base64;
+}
+
+/* ---------------- campo continuo di un modo (nuclei gaussiani, media pesata) ---------------- */
+var cacheCampo = {};
+var DIV_NEG = [63, 160, 255], DIV_POS = [255, 166, 61];
+function coloreDiv(v){ var c = v < 0 ? DIV_NEG : DIV_POS, a = Math.min(1, Math.abs(v)); return [c[0], c[1], c[2], Math.pow(a, .85)]; }
+function campo(id, larg, alt, box){
+  var key = id + "|" + larg; if (cacheCampo[key]) return cacheCampo[key];
+  var pesi = COMP[id].pesi, sig = MO.meta.raggio_interpolazione_km || 22, s2 = 2 * sig * sig;
+  var c = document.createElement("canvas"); c.width = larg; c.height = alt;
+  var x = c.getContext("2d"), d = x.createImageData(larg, alt), a = d.data;
+  for (var j = 0; j < alt; j++){
+    var yk = box[1] + (j + .5) / alt * (box[3] - box[1]);
+    for (var i = 0; i < larg; i++){
+      var xk = box[0] + (i + .5) / larg * (box[2] - box[0]), sw = 0, sv = 0;
+      for (var p = 0; p < PUNTI.length; p++){
+        var dx = xk - PUNTI[p].x, dy = yk - PUNTI[p].y, w = Math.exp(-(dx*dx + dy*dy) / s2);
+        sw += w; sv += w * pesi[p];
+      }
+      var v = sw > 1e-6 ? sv / sw : 0, conf = Math.min(1, sw / .35), col = coloreDiv(v), o = (j * larg + i) * 4;
+      a[o] = col[0]; a[o+1] = col[1]; a[o+2] = col[2]; a[o+3] = Math.round(255 * col[3] * conf);
+    }
+  }
+  x.putImageData(d, 0, 0);
+  var out = {url: c.toDataURL(), canvas: c}; cacheCampo[key] = out; return out;
+}
+var PBOX = (function(){ // riquadro del Piemonte in km (dai punti, con margine)
+  var xs = PUNTI.map(function(p){ return p.x; }), ys = PUNTI.map(function(p){ return p.y; });
+  return [Math.min.apply(0, xs) - 25, Math.min.apply(0, ys) - 25, Math.max.apply(0, xs) + 25, Math.max.apply(0, ys) + 25];
+})();
+function mostraCampo(){
+  var id = S.strati.modo ? modoMostrato() : null;
+  if (!id){ imgField.setAttribute("href", ""); imgField.style.display = "none"; return; }
+  var f = campo(id, 130, Math.round(130 * (PBOX[3] - PBOX[1]) / (PBOX[2] - PBOX[0])), PBOX);
+  imgField.style.display = "";
+  imgField.setAttribute("href", f.url);
+  imgField.setAttribute("x", PBOX[0]); imgField.setAttribute("y", PBOX[1]);
+  imgField.setAttribute("width", PBOX[2] - PBOX[0]); imgField.setAttribute("height", PBOX[3] - PBOX[1]);
+  imgField.setAttribute("opacity", S.strati.legami ? .55 : .85);
+}
+
+/* ---------------- dimensioni e trasformazione ---------------- */
+var CORNICE = [-125, -125, 115, 160]; // vista iniziale: Piemonte intero (km)
+function misura(){
+  W = MAP.clientWidth; H = Math.round(Math.min(Math.max(W * 1.3, 400), window.innerHeight * .8, 760));
+  MAP.style.height = H + "px"; SVG.setAttribute("viewBox", "0 0 " + W + " " + H);
+  s0 = Math.min(W / (CORNICE[2] - CORNICE[0]), H / (CORNICE[3] - CORNICE[1]));
+}
+function vistaInsieme(box, anim){
+  var k = Math.min(W / (box[2] - box[0]), H / (box[3] - box[1])) / s0;
+  var cx = (box[0] + box[2]) / 2, cy = (box[1] + box[3]) / 2;
+  vaiA({k: k, tx: W / 2 - cx * s0 * k, ty: H / 2 - cy * s0 * k}, anim);
+}
+function limita(v){
+  v.k = Math.max(.9, Math.min(14, v.k));
+  var sc = s0 * v.k, x0 = BOX[0] * sc, x1 = BOX[2] * sc, y0 = BOX[1] * sc, y1 = BOX[3] * sc;
+  v.tx = Math.min(-x0 + W * .35, Math.max(W * .65 - x1, v.tx)); v.ty = Math.min(-y0 + H * .35, Math.max(H * .65 - y1, v.ty));
+  return v;
+}
+var animId = 0;
+function vaiA(v, anim){
+  if (!isFinite(v.k + v.tx + v.ty) || !W) return;
+  v = limita(v);
+  if (!anim || RIDUCI){ V = v; applica(true); return; }
+  var a = {k: V.k, tx: V.tx, ty: V.ty}, t0 = performance.now(), id = ++animId;
+  (function passo(t){
+    if (id != animId) return;
+    var u = Math.min(1, (t - t0) / 380), e = u < .5 ? 2*u*u : 1 - Math.pow(-2*u + 2, 2) / 2;
+    // interpolazione in scala logaritmica per lo zoom
+    var k = Math.exp(Math.log(a.k) + (Math.log(v.k) - Math.log(a.k)) * e);
+    var cxA = (W/2 - a.tx) / a.k, cxB = (W/2 - v.tx) / v.k, cyA = (H/2 - a.ty) / a.k, cyB = (H/2 - v.ty) / v.k;
+    var cx = cxA + (cxB - cxA) * e, cy = cyA + (cyB - cyA) * e;
+    V = {k: k, tx: W/2 - cx * k, ty: H/2 - cy * k}; applica(u >= 1);
+    if (u < 1) requestAnimationFrame(passo);
+  })(t0);
+}
+var Vdis = null; // trasformazione con cui è stato disegnato lo strato dei legami
+function applica(completo){
+  var sc = s0 * V.k;
+  gBase.setAttribute("transform", "matrix(" + sc + " 0 0 " + sc + " " + V.tx + " " + V.ty + ")");
+  MAP.classList.toggle("zoom", V.k > 1.05);
+  var vb = $("cc-vista"), lontano = V.k > 2.2;
+  if (vb.getAttribute("data-s") != String(lontano)){ vb.setAttribute("data-s", lontano); vb.setAttribute("aria-label", lontano ? "Tutto il Piemonte" : "Dintorni di casa");
+    vb.innerHTML = lontano ? '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#cfe6ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3V8M14 3H19V8M8 19H3V14M14 19H19V14"/></svg>' : '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#cfe6ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8.5" stroke-dasharray="2.5 2.5"/><path d="M6.8 11.5L11 7.6 15.2 11.5M8.2 10.4V15H13.8V10.4"/></svg>'; }
+  if (completo || !Vdis) disegna();
+  else { var r = V.k / Vdis.k; gOver.setAttribute("transform", "matrix(" + r + " 0 0 " + r + " " + (V.tx - Vdis.tx * r) + " " + (V.ty - Vdis.ty * r) + ")"); programma(); }
+}
+var tProg = 0;
+function programma(){ clearTimeout(tProg); tProg = setTimeout(function(){ disegna(); }, 140); }
+function sx(x){ return x * s0 * V.k + V.tx; } function sy(y){ return y * s0 * V.k + V.ty; }
+
+/* ---------------- quali legami sono visibili ---------------- */
+function probRegimi(g){ return C.giorni[g].probabilita_regimi; }
+function regimiAttivi(){ // [{id, peso}]
+  if (S.regime) return [{id: S.regime, peso: 1}];
+  var p = probRegimi(S.giorno), out = [];
+  for (var r in p) out.push({id: r, peso: p[r]});
+  out.sort(function(a, b){ return b.peso - a.peso; });
+  out = out.filter(function(o, i){ return i == 0 || (i == 1 && o.peso >= .15); });
+  var mx = out[0].peso; out.forEach(function(o){ o.rel = o.peso / mx; });
+  return out;
+}
+function archiVisibili(){
+  var att = regimiAttivi(), pesi = {}; att.forEach(function(a){ pesi[a.id] = S.regime ? 1 : a.rel; });
+  var L = ARCHI.filter(function(a){ return pesi[a.regime] != null && a.forza >= S.fmin && (S.variabile == "tutte" || a.variabile == S.variabile); });
+  if (S.soloCasa){
+    var ok = {}, cambiato = true; ok[CASA] = 1;
+    while (cambiato){ cambiato = false; L.forEach(function(a){ if (ok[a.a] && !ok[a.da]){ ok[a.da] = 1; cambiato = true; } }); }
+    L = L.filter(function(a){ return ok[a.a]; });
+  }
+  L.forEach(function(a){ a.peso = pesi[a.regime]; });
+  return L;
+}
+// percorso migliore da un nodo a casa (massimo prodotto delle forze) nei regimi indicati
+function versoCasa(id, regimi){
+  var best = {}, prev = {}, rit = {}; best[id] = 1; rit[id] = 0;
+  var L = ARCHI.filter(function(a){ return regimi.indexOf(a.regime) >= 0; });
+  for (var it = 0; it < 8; it++) L.forEach(function(a){
+    if (best[a.da] != null){ var v = best[a.da] * a.forza; if (best[a.a] == null || v > best[a.a]){ best[a.a] = v; prev[a.a] = a; rit[a.a] = rit[a.da] + a.ritardo_ore; } }
+  });
+  if (best[CASA] == null || id == CASA) return null;
+  var via = [], n = CASA; while (prev[n] && n != id){ via.unshift(prev[n]); n = prev[n].da; if (via.length > 10) break; }
+  return {forza: best[CASA], ritardo: rit[CASA], via: via};
+}
+function importanza(){ // quanto ogni nodo conta per casa nella vista attuale (0..1)
+  var regs = regimiAttivi(), imp = {};
+  C.nodi.forEach(function(n){
+    var m = 0; regs.forEach(function(r){ var p = versoCasa(n.id, [r.id]); if (p) m = Math.max(m, p.forza * (S.regime ? 1 : r.rel)); });
+    imp[n.id] = n.id == CASA ? 1 : m;
+  });
+  return imp;
+}
+
+/* ---------------- disegno dello strato dei legami e dei nodi (coordinate dello schermo) ---------------- */
+var CACHE = {archi: [], nodi: []};
+function forma(n, r, col, sel){
+  var x = n.px != null ? n.px : sx(n.x), y = n.py != null ? n.py : sy(n.y), s = "", sw = sel ? 2.6 : 1.8;
+  if (n.tipo == "casa"){
+    s += '<circle cx="' + x + '" cy="' + y + '" r="' + (r + 7) + '" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2" class="cc-pulse"/>';
+    s += '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#fff" stroke="#000" stroke-width="1.5"/>';
+    s += '<path transform="translate(' + x + ' ' + y + ') scale(' + (r / 11) + ')" d="M-6 1.5L0-4.5 6 1.5M-4.2 0V5.5H4.2V0" fill="none" stroke="#06101b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    return s;
+  }
+  if (n.tipo == "area"){
+    var ra = Math.max(r + 4, n.raggio_km * s0 * V.k);
+    s += '<circle cx="' + x + '" cy="' + y + '" r="' + ra + '" fill="' + col + '" fill-opacity=".07" stroke="' + col + '" stroke-opacity=".7" stroke-width="1.2" stroke-dasharray="4 4"/>';
+  }
+  if (n.tipo == "quota"){
+    s += '<path d="M' + x + ' ' + (y - r * 1.25) + 'L' + (x + r * 1.25) + ' ' + y + 'L' + x + ' ' + (y + r * 1.25) + 'L' + (x - r * 1.25) + ' ' + y + 'Z" fill="#0b0f14" stroke="' + col + '" stroke-width="' + sw + '"/>';
+  } else if (n.tipo == "radar"){
+    s += '<rect x="' + (x - r) + '" y="' + (y - r) + '" width="' + 2 * r + '" height="' + 2 * r + '" rx="' + r * .35 + '" fill="#0b0f14" stroke="' + col + '" stroke-width="' + sw + '"/>';
+  } else if (n.tipo == "area"){
+    s += '<path d="' + esagono(x, y, r) + '" fill="#0b0f14" stroke="' + col + '" stroke-width="' + sw + '"/>';
+  } else {
+    s += '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#0b0f14" stroke="' + col + '" stroke-width="' + sw + '"/>';
+  }
+  if (r >= 6.5) s += glifo(n.tipo == "radar" ? "radar" : n.variabile_principale, x, y, r * .62, col);
+  else s += '<circle cx="' + x + '" cy="' + y + '" r="' + Math.max(1.6, r * .38) + '" fill="' + col + '"/>';
+  return s;
+}
+function esagono(x, y, r){ var d = ""; for (var i = 0; i < 6; i++){ var a = Math.PI / 3 * i + Math.PI / 6; d += (i ? "L" : "M") + (x + r * 1.1 * Math.cos(a)).toFixed(1) + " " + (y + r * 1.1 * Math.sin(a)).toFixed(1); } return d + "Z"; }
+function glifo(v, x, y, s, col){ // piccoli pittogrammi dentro il nodo
+  var t = 'transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + (s / 6).toFixed(3) + ')"';
+  var st = 'fill="none" stroke="' + col + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"';
+  if (v == "pioggia") return '<path ' + t + ' d="M0-6C2.5-2.5 4.2-.3 4.2 2A4.2 4.2 0 0 1-4.2 2C-4.2-.3-2.5-2.5 0-6Z" fill="' + col + '"/>';
+  if (v == "temperatura") return '<g ' + t + '><path d="M-1.6 1.6V-4.4A1.6 1.6 0 0 1 1.6-4.4V1.6A3 3 0 1 1-1.6 1.6Z" ' + st + '/><circle cx="0" cy="3.6" r="1.6" fill="' + col + '"/></g>';
+  if (v == "vento") return '<path ' + t + ' d="M-5.5-2.5H2.5A2 2 0 1 0 .5-4.5M-5.5 .5H4.5A2 2 0 1 1 2.5 2.5M-5.5 3.5H0" ' + st + '/>';
+  if (v == "radar") return '<g ' + t + '><path d="M-4.5 3.5A6.4 6.4 0 0 1 3.5-4.5M-1.8 1.8A2.6 2.6 0 0 1 1.8-1.8" ' + st + '/><circle cx="0" cy="0" r="1.1" fill="' + col + '"/></g>';
+  return '<path ' + t + ' d="M-5-3H5M-5 0H5M-5 3H5" ' + st + ' stroke-opacity=".9"/>'; // umidità/nebbia
+}
+function curva(a, b, rA, rB, piega){
+  var x1 = a.px, y1 = a.py, x2 = b.px, y2 = b.py, dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+  var nx = -dy / L, ny = dx / L, c = Math.min(L * piega, 60);
+  var cx = (x1 + x2) / 2 + nx * c, cy = (y1 + y2) / 2 + ny * c;
+  // accorcio agli estremi per non coprire i nodi
+  function verso(px, py, qx, qy, r){ var ux = qx - px, uy = qy - py, l = Math.hypot(ux, uy) || 1; return [px + ux / l * r, py + uy / l * r]; }
+  var p1 = verso(x1, y1, cx, cy, rA + 1), p2 = verso(x2, y2, cx, cy, rB + 3);
+  return {d: "M" + p1[0].toFixed(1) + " " + p1[1].toFixed(1) + "Q" + cx.toFixed(1) + " " + cy.toFixed(1) + " " + p2[0].toFixed(1) + " " + p2[1].toFixed(1), p1: p1, c: [cx, cy], p2: p2, L: L};
+}
+function raggio(n, imp){ if (n.tipo == "casa") return 11 + 1.5 * Math.log2(Math.max(1, V.k)); return (4.2 + 8.5 * Math.sqrt(imp[n.id] || 0)) * (1 + .22 * Math.log2(Math.max(1, V.k))); }
+
+function disegna(){
+  Vdis = {k: V.k, tx: V.tx, ty: V.ty}; gOver.removeAttribute("transform");
+  var h = "", imp = importanza(), L = S.strati.legami ? archiVisibili() : [], sel = S.sel, conn = null;
+  var perc = {};
+  if (sel && sel.tipo == "nodo"){ conn = {}; conn[sel.id] = 1; L.forEach(function(a){ if (a.da == sel.id || a.a == sel.id){ conn[a.da] = conn[a.a] = 1; } });
+    var rr = regimiAttivi(), pc = versoCasa(sel.id, [rr[0].id]); if (pc) pc.via.forEach(function(a){ perc[a.i] = 1; conn[a.da] = conn[a.a] = 1; }); }
+  // nodi rilevanti: con un legame visibile o importanti
+  var usati = {}; L.forEach(function(a){ usati[a.da] = usati[a.a] = 1; });
+  var nodiV = C.nodi.filter(function(n){ return n.id == CASA || usati[n.id] || (S.strati.legami && imp[n.id] > 0 && !S.soloCasa); });
+  var R0 = {}; nodiV.forEach(function(n){ R0[n.id] = raggio(n, imp); });
+  CON_LEGAMI = usati;
+  sbroglia(nodiV, R0);
+  var hNomi = "";
+  if (S.strati.nomi){ riserva(nodiV, R0); hNomi = etichetteNodi(nodiV, imp, R0, conn); h += etichetteBase(nodiV); }
+  if (S.strati.modo && !S.strati.legami){ var pz = COMP[modoMostrato()].pesi; PUNTI.forEach(function(p, i){ var v = pz[i]; h += '<circle cx="' + sx(p.x).toFixed(1) + '" cy="' + sy(p.y).toFixed(1) + '" r="' + (1.4 + 2.2 * Math.abs(v)).toFixed(1) + '" fill="' + (v < 0 ? "#bfe0ff" : "#ffe2bd") + '" fill-opacity=".75" stroke="#05080c" stroke-width=".8"/>'; }); }
+  // fili che riportano i nodi spostati alla loro posizione vera
+  nodiV.forEach(function(n){ var x0 = sx(n.x), y0 = sy(n.y); if (Math.hypot(n.px - x0, n.py - y0) > 4) h += '<path d="M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + 'L' + n.px.toFixed(1) + ' ' + n.py.toFixed(1) + '" stroke="#c9d1d9" stroke-opacity=".55" stroke-width="1"/><circle cx="' + x0.toFixed(1) + '" cy="' + y0.toFixed(1) + '" r="2" fill="#c9d1d9"/>'; });
+  // legami: prima i deboli, poi i forti
+  L.sort(function(a, b){ return a.forza * a.peso - b.forza * b.peso; });
+  var hA = "", hAn = "", geo = [];
+  L.forEach(function(a){
+    var A = NODI[a.da], B = NODI[a.a]; if (!R0[a.da] || !R0[a.a]) return;
+    var cv = curva(A, B, R0[a.da], R0[a.a], .16), bi = ritBin(a.ritardo_ore), col = RIT[bi].col;
+    var w = (.9 + 6.2 * a.forza) * (1 + .15 * Math.log2(Math.max(1, V.k)));
+    var op = (.28 + .72 * a.sicurezza) * (.25 + .75 * a.peso);
+    var spento = sel && ((sel.tipo == "nodo" && a.da != sel.id && a.a != sel.id && !perc[a.i]) || (sel.tipo == "arco" && sel.i != a.i));
+    if (spento) op *= .18;
+    var ev = sel && ((sel.tipo == "arco" && sel.i == a.i) || perc[a.i]);
+    var dash = a.sicurezza < .6 ? ' stroke-dasharray="' + (w * 1.3 + 2).toFixed(1) + ' ' + (w * 1.1 + 3).toFixed(1) + '"' : "";
+    if (ev) hA += '<path d="' + cv.d + '" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="' + (w + 6) + '" stroke-linecap="round"/>';
+    hA += '<path d="' + cv.d + '" fill="none" stroke="' + col + '" stroke-opacity="' + op.toFixed(2) + '" stroke-width="' + w.toFixed(2) + '" stroke-linecap="round"' + dash + ' marker-end="url(#cc-fr' + bi + ')"/>';
+    if (!RIDUCI && !spento && a.forza >= .3 && a.peso > .5 && cv.L > 18){
+      var per = 22, du = RIT[bi].dur;
+      hAn += '<path d="' + cv.d + '" fill="none" stroke="#fff" stroke-opacity="' + (.55 * op).toFixed(2) + '" stroke-width="' + Math.max(1.2, w * .45).toFixed(2) + '" stroke-linecap="round" stroke-dasharray="2 ' + (per - 2) + '" style="animation:cc-scorri ' + du + 's linear infinite"/>';
+    }
+    geo.push({a: a, cv: cv, w: w});
+  });
+  h += hA + hAn;
+  // nodi
+  var nodiOrd = nodiV.slice().sort(function(a, b){ return (imp[a.id] || 0) - (imp[b.id] || 0); });
+  var NN = [];
+  nodiOrd.forEach(function(n){
+    if (n.id == CASA) return;
+    var r = R0[n.id], col = VAR[n.variabile_principale].col, op = conn && !conn[n.id] ? .3 : 1;
+    h += '<g opacity="' + op + '">' + forma(n, r, col, sel && sel.id == n.id) + '</g>';
+    NN.push({n: n, r: r});
+  });
+  h += forma(NODI[CASA], R0[CASA], "#fff");
+  NN.push({n: NODI[CASA], r: R0[CASA]});
+  if (sel && sel.tipo == "nodo" && NODI[sel.id]){ var sn = NODI[sel.id]; h += '<circle cx="' + sn.px + '" cy="' + sn.py + '" r="' + (R0[sel.id] + 6) + '" fill="none" stroke="#fff" stroke-width="2"/>'; }
+  // etichette dei nodi
+  h += hNomi + scala();
+  gOver.innerHTML = h;
+  CACHE.archi = geo; CACHE.nodi = NN;
+  aggiornaTitoloMappa();
+}
+var occ = [], CON_LEGAMI = {};
+// i nodi troppo vicini sullo schermo si allontanano un poco; un filo li lega al punto vero (casa resta ferma)
+function sbroglia(nodiV, R0){
+  nodiV.forEach(function(n){ n.px = sx(n.x); n.py = sy(n.y); });
+  for (var it = 0; it < 60; it++){
+    var mosso = false;
+    for (var i = 0; i < nodiV.length; i++) for (var j = i + 1; j < nodiV.length; j++){
+      var a = nodiV[i], b = nodiV[j], dx = b.px - a.px, dy = b.py - a.py, d = Math.hypot(dx, dy), m = R0[a.id] + R0[b.id] + 3;
+      if (d >= m) continue;
+      if (d < .01){ dx = Math.cos(i + j); dy = Math.sin(i + j); d = 1; }
+      var sp = (m - d) / 2, ux = dx / d, uy = dy / d, fa = a.id == CASA ? 0 : b.id == CASA ? 2 : 1, fb = 2 - fa;
+      a.px -= ux * sp * fa; a.py -= uy * sp * fa; b.px += ux * sp * fb; b.py += uy * sp * fb; mosso = true;
+    }
+    if (!mosso) break;
+  }
+}
+function libero(b){ for (var i = 0; i < occ.length; i++){ var o = occ[i]; if (b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]) return false; } return true; }
+function testo(x, y, t, cls, anc){
+  var st = {citta: 'font-size="11.5" fill="#8f9aa7" font-weight="500"', area: 'font-size="10.5" fill="#5d6773" font-weight="600" letter-spacing="1.6"',
+            nodo: 'font-size="12.5" fill="#f0f3f6" font-weight="600"', nodo2: 'font-size="11.5" fill="#c9d1d9" font-weight="500"', casa: 'font-size="13" fill="#fff" font-weight="700"',
+            fiume: 'font-size="11" fill="#5ea2e6" font-style="italic" font-weight="500"', mare: 'font-size="11" fill="#3d6d9c" font-style="italic" letter-spacing="1.2"'}[cls];
+  return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="' + (anc || "start") + '" ' + st + ' stroke="#05080c" stroke-width="3.2" stroke-linejoin="round" paint-order="stroke">' + esc(t) + '</text>';
+}
+function largT(t, fs){ return t.length * fs * .56 + 2; }
+var FIUMI_ET = [{n: "Po", lat: 45.035, lon: 7.55}, {n: "Po", lat: 45.10, lon: 8.62}, {n: "Tanaro", lat: 44.80, lon: 8.38}, {n: "Sesia", lat: 45.43, lon: 8.47}, {n: "Dora Baltea", lat: 45.36, lon: 7.93}, {n: "Ticino", lat: 45.52, lon: 8.72}];
+function scala(){
+  var kmpx = s0 * V.k, passi = [1, 2, 5, 10, 20, 50, 100], km = passi[0];
+  for (var i = 0; i < passi.length; i++) if (passi[i] * kmpx <= 90) km = passi[i];
+  var L = km * kmpx, x = W - 12 - L, y = H - 14;
+  return '<g opacity=".9"><path d="M' + x + ' ' + (y - 5) + 'V' + y + 'H' + (x + L) + 'V' + (y - 5) + '" fill="none" stroke="#c9d1d9" stroke-width="1.4"/>' + testo(x + L / 2, y - 6, km + " km", "citta", "middle") + '</g>';
+}
+function riserva(nodiV, R0){
+  occ = [[W - 58, 0, W, 170], [0, H - 50, 120, H], [0, 0, W, 40], [W - 110, H - 34, W, H]];
+  nodiV.forEach(function(n){ var x = n.px, y = n.py, r = (R0[n.id] || 6) + 1; occ.push([x - r, y - r, x + r, y + r]); });
+}
+function etichetteBase(nodiV){
+  var h = "";
+  (K.etichette_area || []).forEach(function(e){
+    var p = proj(e.lat, e.lon), x = sx(p[0]), y = sy(p[1]), t = e.nome, w = largT(t, 10.5) + t.length * 1.6;
+    var b = [x - w / 2, y - 10, x + w / 2, y + 3];
+    if (b[0] < 0 || b[2] > W || y < 0 || y > H || !libero(b)) return;
+    occ.push(b); h += testo(x, y, t, e.mare ? "mare" : "area", "middle");
+  });
+  if (V.k >= 1.4) FIUMI_ET.forEach(function(f){
+    var p = proj(f.lat, f.lon), x = sx(p[0]), y = sy(p[1]); if (x < 0 || x > W || y < 0 || y > H) return;
+    var b = [x - largT(f.n, 11) / 2, y - 10, x + largT(f.n, 11) / 2, y + 3]; if (!libero(b)) return; occ.push(b); h += testo(x, y, f.n, "fiume", "middle");
+  });
+  K.citta.forEach(function(c){
+    var p = proj(c.lat, c.lon), x = sx(p[0]), y = sy(p[1]);
+    if (x < 0 || x > W || y < 0 || y > H) return;
+    var vicino = nodiV.some(function(n){ return Math.hypot(n.x - p[0], n.y - p[1]) < 4; });
+    if (c.rango > 2 && V.k < 1.3 && false) return;
+    h += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (c.rango == 1 ? 3 : 2.2) + '" fill="#8f9aa7"/>';
+    if (vicino) return; // il nome lo scrive il nodo
+    var t = c.nome, w = largT(t, 11.5), b = [x + 5, y - 9, x + 5 + w, y + 4];
+    if (!libero(b)){ b = [x - 5 - w, y - 9, x - 5, y + 4]; if (!libero(b)) return; h += testo(x - 5, y + 3.5, t, "citta", "end"); }
+    else h += testo(x + 5, y + 3.5, t, "citta");
+    occ.push(b);
+  });
+  return h;
+}
+function etichetteNodi(nodiV, imp, R0, conn){
+  var h = "", ord = nodiV.slice().sort(function(a, b){ return (b.id == CASA) - (a.id == CASA) || (imp[b.id] || 0) - (imp[a.id] || 0); });
+  var hs = []; // le etichette si scrivono dopo aver deciso le posizioni
+  ord.forEach(function(n){
+    if (conn && !conn[n.id]) return;
+    var x = n.px, y = n.py, r = R0[n.id] + 3;
+    if (x < -20 || x > W + 20 || y < -20 || y > H + 20) return;
+    var t = n.id == CASA ? "Casa" : nomeCorto(n), cls = n.id == CASA ? "casa" : (imp[n.id] > .25 ? "nodo" : "nodo2"), fs = cls == "casa" ? 13 : cls == "nodo" ? 12.5 : 11.5;
+    if (n.id != CASA && imp[n.id] < .08 && V.k < 1.6 && !(conn && conn[n.id]) && !CON_LEGAMI[n.id]) return;
+    var w = largT(t, fs), posti = [[x + r, y + fs * .36, "start"], [x - r, y + fs * .36, "end"], [x, y - r - 2, "middle"], [x, y + r + fs, "middle"], [x + r * .8, y - r * .8, "start"], [x - r * .8, y + r + fs * .6, "end"]];
+    for (var i = 0; i < posti.length; i++){
+      var p = posti[i], bx = p[2] == "start" ? p[0] : p[2] == "end" ? p[0] - w : p[0] - w / 2, b = [bx - 1, p[1] - fs * .82, bx + w + 1, p[1] + fs * .25];
+      if (b[0] < 2 || b[2] > W - 2 || b[1] < 2 || b[3] > H - 2) continue;
+      if (libero(b)){ occ.push(b); hs.push(testo(p[0], p[1], t, cls, p[2])); break; }
+    }
+  });
+  return hs.join("");
+}
+function nomeCorto(n){ return {radar_bric: "Radar Bric della Croce", radar_settepani: "Radar Settepani", q_lig: "Quota Mar Ligure", q_ovest: "Quota Alpi Cozie", q_nord: "Quota Alpi Graie", q_torino: "Quota sopra Torino", q_est: "Quota Lombardia", area_mare: "Mar Ligure", area_langhe: "Langhe", area_lomellina: "Lomellina", brandizzo: "Brandizzo", torino: "Torino", caselle: "Caselle"}[n.id] || n.nome; }
+
+/* ---------------- tocchi, pizzicamento e spostamento ---------------- */
+var tocchi = {}, gesto = null, ultimoTap = 0, mosso = false;
+function pos(e){ var r = SVG.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+MAP.addEventListener("touchstart", function(e){
+  if (e.target.closest("button")) return;
+  var t = e.touches; mosso = false; animId++;
+  if (t.length == 2){ e.preventDefault(); var a = pos(t[0]), b = pos(t[1]); gesto = {tipo: "pinch", d0: Math.hypot(a[0]-b[0], a[1]-b[1]), c0: [(a[0]+b[0])/2, (a[1]+b[1])/2], v0: {k: V.k, tx: V.tx, ty: V.ty}}; }
+  else if (t.length == 1){ var p = pos(t[0]); gesto = {tipo: "pan", p0: p, v0: {k: V.k, tx: V.tx, ty: V.ty}, t0: Date.now()}; }
+}, {passive: false});
+MAP.addEventListener("touchmove", function(e){
+  if (!gesto) return; var t = e.touches;
+  if (gesto.tipo == "pinch" && t.length == 2){
+    e.preventDefault(); var a = pos(t[0]), b = pos(t[1]), d = Math.hypot(a[0]-b[0], a[1]-b[1]), c = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+    var k = Math.max(.9, Math.min(14, gesto.v0.k * d / gesto.d0)), r = k / gesto.v0.k;
+    V = limita({k: k, tx: c[0] - (gesto.c0[0] - gesto.v0.tx) * r, ty: c[1] - (gesto.c0[1] - gesto.v0.ty) * r}); mosso = true; applica(false);
+  } else if (gesto.tipo == "pan" && t.length == 1){
+    var p = pos(t[0]), dx = p[0] - gesto.p0[0], dy = p[1] - gesto.p0[1];
+    if (Math.hypot(dx, dy) > 6) mosso = true;
+    if (V.k > 1.05 || Math.abs(dx) > Math.abs(dy) * 1.4){ if (e.cancelable) e.preventDefault(); if (mosso){ V = limita({k: V.k, tx: gesto.v0.tx + dx, ty: gesto.v0.ty + (V.k > 1.05 ? dy : 0)}); applica(false); } }
+  }
+}, {passive: false});
+MAP.addEventListener("touchend", function(e){
+  if (!gesto) return;
+  if (e.touches.length == 0){
+    if (gesto.tipo == "pan" && !mosso && Date.now() - gesto.t0 < 400){
+      var p = gesto.p0, ora = Date.now();
+      if (ora - ultimoTap < 300){ zoomIn(p, 2.2); ultimoTap = 0; } else { ultimoTap = ora; tocca(p); }
+      e.preventDefault();
+    }
+    gesto = null; programma();
+  } else if (e.touches.length == 1){ var q = pos(e.touches[0]); gesto = {tipo: "pan", p0: q, v0: {k: V.k, tx: V.tx, ty: V.ty}, t0: 0}; mosso = true; }
+}, {passive: false});
+// mouse (computer)
+var md = null;
+MAP.addEventListener("mousedown", function(e){ if (e.target.closest("button")) return; md = {p0: pos(e), v0: {k: V.k, tx: V.tx, ty: V.ty}, m: false}; });
+window.addEventListener("mousemove", function(e){ if (!md) return; var p = pos(e), dx = p[0] - md.p0[0], dy = p[1] - md.p0[1]; if (Math.hypot(dx, dy) > 4) md.m = true; if (md.m){ V = limita({k: V.k, tx: md.v0.tx + dx, ty: md.v0.ty + dy}); applica(false); } });
+window.addEventListener("mouseup", function(e){ if (!md) return; if (!md.m && !("ontouchstart" in window)) tocca(md.p0); md = null; programma(); });
+MAP.addEventListener("wheel", function(e){ e.preventDefault(); zoomIn(pos(e), Math.exp(-e.deltaY * .0025), true); }, {passive: false});
+MAP.addEventListener("dblclick", function(e){ e.preventDefault(); if (!("ontouchstart" in window)) zoomIn(pos(e), 2.2); });
+function zoomIn(p, f, subito){ var k = Math.max(.9, Math.min(14, V.k * f)), r = k / V.k; vaiA({k: k, tx: p[0] - (p[0] - V.tx) * r, ty: p[1] - (p[1] - V.ty) * r}, !subito); }
+$("cc-piu").onclick = function(){ zoomIn([W/2, H/2], 1.8); };
+$("cc-meno").onclick = function(){ zoomIn([W/2, H/2], 1/1.8); };
+$("cc-vista").onclick = function(){ if (V.k > 2.2) vistaInsieme(CORNICE, true); else vistaInsieme([-26, -22, 26, 26], true); };
+function tocca(p){
+  // nodo più vicino entro 24 px, altrimenti legame più vicino entro 14 px
+  var best = null, bd = 1e9;
+  CACHE.nodi.forEach(function(o){ var d = Math.hypot(o.n.px - p[0], o.n.py - p[1]) - o.r; if (d < 22 && d < bd){ bd = d; best = o.n; } });
+  if (best){ apriNodo(best.id); return; }
+  var ba = null, bda = 1e9;
+  CACHE.archi.forEach(function(g){
+    for (var t = .05; t <= .95; t += .05){
+      var u = 1 - t, x = u*u*g.cv.p1[0] + 2*u*t*g.cv.c[0] + t*t*g.cv.p2[0], y = u*u*g.cv.p1[1] + 2*u*t*g.cv.c[1] + t*t*g.cv.p2[1];
+      var d = Math.hypot(x - p[0], y - p[1]) - g.w / 2; if (d < bda){ bda = d; ba = g.a; }
+    }
+  });
+  if (ba && bda < 14){ apriArco(ba.i); return; }
+  if (S.sel){ chiudiFoglio(); }
+}
+
+/* ---------------- foglio dal basso ---------------- */
+var Vprima = null;
+function mostraSopraFoglio(x, y){ // sposta la cartina perché il punto resti visibile sopra il foglio
+  setTimeout(function(){
+    var r = MAP.getBoundingClientRect(), topF = window.innerHeight - FOGLIO.getBoundingClientRect().height;
+    var alto = Math.max(r.top, 0), basso = Math.min(r.bottom, topF);
+    if (basso - alto < 120){ window.scrollBy({top: r.top - Math.max(8, topF - Math.min(H, topF) ), behavior: "auto"}); r = MAP.getBoundingClientRect(); alto = Math.max(r.top, 0); basso = Math.min(r.bottom, topF); }
+    var ty = (alto + basso) / 2 - r.top, tx = W / 2, ys = y(), xs = x();
+    if (ys > basso - r.top - 30 || ys < alto - r.top + 50 || xs < 30 || xs > W - 30){ if (!Vprima) Vprima = {k: V.k, tx: V.tx, ty: V.ty}; vaiA({k: V.k, tx: V.tx + (tx - xs), ty: V.ty + (ty - ys)}, true); }
+  }, 30);
+}
+function apriFoglio(html){
+  FOGLIO.innerHTML = '<div class="cc-maniglia"></div><button class="cc-fx" aria-label="Chiudi">×</button>' + html;
+  FOGLIO.scrollTop = 0; FOGLIO.classList.add("on"); VELO.classList.add("on");
+  FOGLIO.querySelector(".cc-fx").onclick = chiudiFoglio;
+  FOGLIO.querySelectorAll("[data-nodo]").forEach(function(b){ b.onclick = function(){ apriNodo(b.getAttribute("data-nodo")); }; });
+  FOGLIO.querySelectorAll("[data-arco]").forEach(function(b){ b.onclick = function(){ apriArco(+b.getAttribute("data-arco")); }; });
+}
+function chiudiFoglio(){ FOGLIO.classList.remove("on"); VELO.classList.remove("on"); S.sel = null; disegna(); if (Vprima){ vaiA(Vprima, true); Vprima = null; } }
+VELO.onclick = chiudiFoglio;
+(function(){ var y0 = null; FOGLIO.addEventListener("touchstart", function(e){ y0 = FOGLIO.scrollTop <= 0 ? e.touches[0].clientY : null; }, {passive: true});
+  FOGLIO.addEventListener("touchmove", function(e){ if (y0 != null && e.touches[0].clientY - y0 > 70){ y0 = null; chiudiFoglio(); } }, {passive: true}); })();
+document.addEventListener("keydown", function(e){ if (e.key == "Escape" && FOGLIO.classList.contains("on")) chiudiFoglio(); });
+
+function freccia(g, col){ // freccia che indica VERSO DOVE soffia il vento (proviene da g)
+  return '<svg width="20" height="20" viewBox="-10 -10 20 20" aria-hidden="true"><path transform="rotate(' + ((g + 180) % 360) + ')" d="M0-8L5 4L0 1.5L-5 4Z" fill="' + (col || "#cfe6ff") + '"/></svg>';
+}
+function apriNodo(id){
+  var n = NODI[id]; S.sel = {tipo: "nodo", id: id}; disegna();
+  var g = S.giorno, T = n.tempo.giorni[g], h = "";
+  mostraSopraFoglio(function(){ return sx(n.x); }, function(){ return sy(n.y); });
+  h += '<div class="cc-ft">' + esc(n.nome) + '</div>';
+  var dove = n.id == CASA ? "Il punto della previsione" : (n.comune ? esc(n.comune) + (n.provincia ? " (" + n.provincia + ")" : "") + " · " : "") + "a " + num(n.dist) + " km verso " + bussola(n.dir) + " da casa";
+  h += '<p class="cc-fs">' + esc(TIPO[n.tipo]) + ' · ' + (n.tipo == "quota" ? esc(n.livello) : "quota " + num(n.quota_m) + " m") + '<br>' + dove + '</p>';
+  h += '<p class="cc-p">' + esc(n.descrizione) + '</p>';
+  h += '<div>' + n.variabili.map(function(v){ return '<span class="cc-tag" style="color:' + VAR[v].col + '">' + VAR[v].nome + '</span>'; }).join("") + '</div>';
+  // quanto conta per casa
+  var regs = regimiAttivi(), righe = [];
+  if (n.id != CASA){
+    regs.forEach(function(r){ var p = versoCasa(n.id, [r.id]); if (p) righe.push({r: r, p: p}); });
+    righe.sort(function(a, b){ return b.p.forza * b.r.peso - a.p.forza * a.r.peso; });
+    if (righe.length){
+      var b = righe[0], v0 = b.p.via[b.p.via.length - 1].variabile, vie = b.p.via.slice(0, -1).map(function(a){ return nomeCorto(NODI[a.a]); });
+      h += '<p class="cc-p"><b>Quanto conta per casa:</b> con ' + esc(REG[b.r.id].nome.toLowerCase()) + ' anticipa ' + (v0 == "umidita" ? "l'umidità" : "la " + VAR[v0].nome) + ' a casa di <b>' + ore(b.p.ritardo) + '</b>' +
+        (vie.length ? ', passando per ' + esc(vie.join(", ")) : ', direttamente') + '. Legame complessivo <b>' + forzaParola(b.p.forza) + '</b> (' + num(b.p.forza, 2) + ' su 1).</p>';
+    } else h += '<p class="cc-p"><b>Quanto conta per casa:</b> nei regimi previsti per ' + giornoLungo(g) + ' non anticipa il tempo di casa.</p>';
+  }
+  // tempo sul nodo
+  h += '<div class="cc-sez" style="margin-top:14px">Tempo qui, ' + giornoLungo(g) + '<small>' + (g == 0 ? "previsione del giorno; in fondo la misura delle 7" : "previsione") + '</small></div>';
+  h += '<div class="cc-blocchi">';
+  h += '<div class="cc-bl"><div class="k">Pioggia</div><div class="v" style="color:#9fd0ff">' + num(T.pioggia_mm, 1) + ' mm <small>prob. ' + pct(T.pioggia_probabilita) + '</small></div></div>';
+  if (T.vento_kmh != null) h += '<div class="cc-bl"><div class="k">Vento</div><div class="v">' + freccia(T.vento_da_gradi) + num(T.vento_kmh) + ' <small>km/h</small></div><div class="k">da ' + bussola(T.vento_da_gradi) + '</div></div>';
+  if (T.t_min != null) h += '<div class="cc-bl"><div class="k">Temperatura</div><div class="v"><span style="color:#8cc4ff">' + num(T.t_min) + '°</span> / <span style="color:#ffb08a">' + num(T.t_max) + '°</span></div></div>';
+  if (T.umidita != null) h += '<div class="cc-bl"><div class="k">Umidità</div><div class="v">' + T.umidita + ' %</div></div>';
+  if (T.raffica_kmh != null) h += '<div class="cc-bl"><div class="k">Raffiche</div><div class="v">' + num(T.raffica_kmh) + ' km/h</div></div>';
+  h += '</div>';
+  if (g == 0 && n.tempo.adesso){ var a = n.tempo.adesso; h += '<p class="cc-nota">Misurato alle ' + a.ora.slice(11) + ': ' + [a.temperatura != null ? num(a.temperatura, 1) + "°" : null, "pioggia nell'ultima ora " + num(a.pioggia_ultima_ora_mm, 1) + " mm", a.vento_kmh != null ? "vento " + a.vento_kmh + " km/h da " + bussola(a.vento_da_gradi) : null, a.umidita != null ? "umidità " + a.umidita + " %" : null].filter(Boolean).join(" · ") + '.</p>'; }
+  // legami del nodo
+  var L = archiVisibili(), usc = L.filter(function(a){ return a.da == id; }), ent = L.filter(function(a){ return a.a == id; });
+  function riga(a, verso){ var o = NODI[verso == "u" ? a.a : a.da]; return '<button class="cc-el" data-arco="' + a.i + '"><i class="sg" style="background:' + RIT[ritBin(a.ritardo_ore)].col + ';height:' + (2 + a.forza * 7) + 'px"></i><span>' + (verso == "u" ? "→ " : "← ") + esc(nomeCorto(o)) + '<br><small>' + VAR[a.variabile].nome + ' · ' + esc(REG[a.regime].nome_breve) + '</small></span><small>' + ore(a.ritardo_ore) + '<br>forza ' + num(a.forza, 2) + '</small></button>'; }
+  if (ent.length){ h += '<div class="cc-sez">Chi lo anticipa<small>legami in arrivo, nei regimi mostrati</small></div><div class="cc-elenco">' + ent.sort(function(a, b){ return b.forza - a.forza; }).map(function(a){ return riga(a, "e"); }).join("") + '</div>'; }
+  if (usc.length){ h += '<div class="cc-sez">Chi anticipa lui<small>legami in partenza</small></div><div class="cc-elenco">' + usc.sort(function(a, b){ return b.forza - a.forza; }).map(function(a){ return riga(a, "u"); }).join("") + '</div>'; }
+  apriFoglio(h);
+}
+function apriArco(i){
+  var a = ARCHI[i], A = NODI[a.da], B = NODI[a.a], r = REG[a.regime], p = probRegimi(S.giorno)[a.regime];
+  S.sel = {tipo: "arco", i: i}; disegna();
+  mostraSopraFoglio(function(){ return (sx(A.x) + sx(B.x)) / 2; }, function(){ return (sy(A.y) + sy(B.y)) / 2; });
+  var h = '<div class="cc-ft">' + esc(nomeCorto(A)) + ' → ' + esc(nomeCorto(B)) + '</div>';
+  h += '<p class="cc-fs">Legame di ' + VAR[a.variabile].nome + ' · regime «' + esc(r.nome) + '»</p>';
+  h += '<p class="cc-p">Quando ' + (a.variabile == "pioggia" ? "piove" : a.variabile == "vento" ? "il vento cambia" : a.variabile == "temperatura" ? "la temperatura cambia" : "l'umidità cambia") + ' a <b>' + esc(nomeCorto(A)) + '</b>, dopo circa <b>' + ore(a.ritardo_ore) + '</b> succede lo stesso a <b>' + esc(nomeCorto(B)) + '</b>, anche tenendo conto di tutti gli altri luoghi.</p>';
+  h += '<div class="cc-blocchi">';
+  h += '<div class="cc-bl"><div class="k">Forza</div><div class="v">' + num(a.forza, 2) + ' <small>' + forzaParola(a.forza) + '</small></div><div class="k">fra ' + num(a.forza_intervallo[0], 2) + ' e ' + num(a.forza_intervallo[1], 2) + '</div></div>';
+  h += '<div class="cc-bl"><div class="k">Ritardo</div><div class="v" style="color:' + RIT[ritBin(a.ritardo_ore)].col + '">' + ore(a.ritardo_ore) + '</div><div class="k">fra ' + a.ritardo_intervallo[0] + ' e ' + a.ritardo_intervallo[1] + ' ore</div></div>';
+  h += '<div class="cc-bl"><div class="k">Quanto è sicuro</div><div class="v">' + pct(a.sicurezza) + '</div><div class="k">' + sicuroParola(a.sicurezza) + ': ricompare in ' + pct(a.sicurezza) + ' delle prove</div></div>';
+  h += '<div class="cc-bl"><div class="k">Regime, ' + GSETT[dt(C.giorni[S.giorno].data).getDay()] + ' ' + dt(C.giorni[S.giorno].data).getDate() + '</div><div class="v"><i style="width:10px;height:10px;border-radius:50%;background:' + r.colore + ';display:inline-block"></i>' + pct(p) + '</div><div class="k">probabilità del regime</div></div>';
+  h += '</div>';
+  h += '<p class="cc-nota">Distanza ' + num(Math.hypot(A.x - B.x, A.y - B.y)) + ' km · ' + a.n_casi + ' episodi usati per la stima.</p>';
+  var altri = ARCHI.filter(function(b){ return b.da == a.da && b.a == a.a && b.i != a.i; });
+  if (altri.length) h += '<div class="cc-sez">Lo stesso legame in altri regimi</div><div class="cc-elenco">' + altri.map(function(b){ return '<button class="cc-el" data-arco="' + b.i + '"><i class="sg" style="background:' + REG[b.regime].colore + '"></i><span>' + esc(REG[b.regime].nome) + '<br><small>' + VAR[b.variabile].nome + '</small></span><small>' + ore(b.ritardo_ore) + '<br>forza ' + num(b.forza, 2) + '</small></button>'; }).join("") + '</div>';
+  else h += '<p class="cc-nota">Questo legame compare solo in questo regime.</p>';
+  h += '<div class="cc-elenco" style="margin-top:12px"><button class="cc-el" data-nodo="' + A.id + '"><span>Apri ' + esc(nomeCorto(A)) + '</span><small>da qui parte</small></button><button class="cc-el" data-nodo="' + B.id + '"><span>Apri ' + esc(nomeCorto(B)) + '</span><small>qui arriva</small></button></div>';
+  apriFoglio(h);
+}
+function campione(tipo, col){
+  var n = {x: 0, y: 0, tipo: tipo, variabile_principale: "pioggia", raggio_km: 0}, ssx = sx, ssy = sy;
+  sx = function(){ return 14; }; sy = function(){ return 14; };
+  var s = '<svg width="28" height="28" viewBox="0 0 28 28">' + forma(n, tipo == "casa" ? 9 : 8, col || "#cfd6de") + '</svg>';
+  sx = ssx; sy = ssy; return s;
+}
+function apriLegenda(){
+  var h = '<div class="cc-ft">Come leggere la cartina</div><div class="cc-leg">';
+  h += '<h4>Luoghi (nodi)</h4>';
+  [["casa", "Casa, Via Fasella 17"], ["stazione", "Stazione al suolo"], ["quota", "Punto in quota, circa 1500 m (dalla griglia dei modelli)"], ["radar", "Radar meteorologico"], ["area", "Area sorvegliata (il cerchio tratteggiato ne mostra l'estensione)"]].forEach(function(t){ h += '<div class="lr">' + campione(t[0], t[0] == "casa" ? "#fff" : null) + t[1] + '</div>'; });
+  h += '<div class="lr" style="margin-top:8px">Il colore e il disegno dentro il nodo dicono che cosa conta di più in quel luogo:</div>';
+  for (var v in VAR) h += '<div class="lr"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="10" fill="#0b0f14" stroke="' + VAR[v].col + '" stroke-width="1.8"/>' + glifo(v, 14, 14, 6.2, VAR[v].col) + '</svg>' + VAR[v].nome + '</div>';
+  h += '<div class="lr">Più il nodo è grande, più conta per casa nel giorno scelto.</div>';
+  h += '<h4>Legami (frecce)</h4><div class="lr">La freccia va dal luogo che <b>anticipa</b> al luogo che <b>segue</b>.</div>';
+  h += '<div class="lr"><svg width="60" height="26"><path d="M4 20L54 20" stroke="#ffc23d" stroke-width="1.5"/><path d="M4 8L54 8" stroke="#ffc23d" stroke-width="6.5" stroke-linecap="round"/></svg>Spessore = forza del legame (sottile debole, grosso forte)</div>';
+  h += '<div class="lr" style="flex-wrap:wrap">Colore = ritardo, cioè quanto prima arriva:</div><div class="lr" style="flex-wrap:wrap;gap:6px">' + RIT.map(function(r){ return '<span style="display:inline-flex;align-items:center;gap:5px;margin-right:8px"><i style="display:inline-block;width:22px;height:5px;border-radius:3px;background:' + r.col + '"></i>' + r.nome + '</span>'; }).join("") + '</div>';
+  h += '<div class="lr"><svg width="60" height="14"><path d="M4 7L54 7" stroke="#ff8336" stroke-width="3.5" stroke-dasharray="6 6" stroke-linecap="round" opacity=".7"/></svg>Tratteggiato e trasparente = legame incerto</div>';
+  h += '<div class="lr">Le lineette chiare che scorrono mostrano il verso: più veloci quando il ritardo è breve.</div>';
+  h += '<div class="lr">Nei giorni lontani, se il regime non è sicuro, si vedono insieme i legami dei regimi possibili, tanto più sbiaditi quanto meno sono probabili.</div>';
+  h += '<h4>Modi del tempo (macchie colorate)</h4>';
+  h += '<div class="lr"><svg width="120" height="14"><defs><linearGradient id="cc-lg"><stop offset="0" stop-color="rgb(63,160,255)"/><stop offset=".5" stop-color="rgb(63,160,255)" stop-opacity="0"/><stop offset=".5" stop-color="rgb(255,166,61)" stop-opacity="0"/><stop offset="1" stop-color="rgb(255,166,61)"/></linearGradient></defs><rect width="120" height="14" rx="4" fill="url(#cc-lg)"/></svg></div>';
+  h += '<div class="lr">Arancio: qui il modo si fa sentire di più (più pioggia, umidità o caldo del solito). Azzurro: qui va al contrario. Trasparente: qui conta poco.</div>';
+  h += '<h4>Cartina</h4><div class="lr">Grigio-azzurro più chiaro = più in alto (fasce a 300, 600, 1200, 2000 e 2800 m); linea chiara = confine del Piemonte; tratteggio = confine di stato; blu = fiumi e laghi.</div>';
+  h += '<p class="cc-nota">Confini: ISTAT (via openpolis, CC BY) e Natural Earth (pubblico dominio). Rilievo: Terrain Tiles di Tilezen, con dati EU-DEM (Copernicus, Unione europea) e SRTM (U.S. Geological Survey).</p></div>';
+  S.sel = null; apriFoglio(h);
+}
+$("cc-legb").onclick = apriLegenda;
+
+/* ---------------- striscia dei giorni ---------------- */
+function disegnaGiorni(){
+  var h = "";
+  C.giorni.forEach(function(g, i){
+    var d = dt(g.data), col, p, nome;
+    var pz;
+    if (S.vista == "legami"){ var rid = g.regime_principale; col = REG[rid].colore; p = g.probabilita_regimi[rid]; nome = REG[rid].nome_breve;
+      pz = Object.keys(g.probabilita_regimi).map(function(k){ return [g.probabilita_regimi[k], REG[k].colore]; }); }
+    else { var m = modoDelGiorno(i, S.livello); col = COMP[m.id].colore; p = m.p; nome = COMP[m.id].nome_breve;
+      var pm = probModi(i, S.livello); pz = Object.keys(pm).map(function(k){ return [pm[k], COMP[k].colore]; }); }
+    pz.sort(function(a, b){ return b[0] - a[0]; });
+    var acc = 0, seg = pz.map(function(z){ var s = '<i style="bottom:' + (acc * 100).toFixed(1) + '%;height:' + (z[0] * 100).toFixed(1) + '%;background:' + z[1] + '"></i>'; acc += z[0]; return s; }).join("");
+    h += '<button class="cc-g" data-g="' + i + '" aria-pressed="' + (i == S.giorno) + '" aria-label="' + giornoLungo(i) + ': ' + esc(nome) + ', probabilità ' + pct(p) + '"><span class="gs">' + (i == 0 ? "oggi" : GSETT[d.getDay()]) + '</span><span class="gd">' + d.getDate() + '</span>' +
+      '<span class="gb">' + seg + '</span><span class="gp">' + pct(p) + '</span></button>';
+  });
+  var box = $("cc-giorni"); box.innerHTML = h;
+  box.querySelectorAll(".cc-g").forEach(function(b){ b.onclick = function(){ S.giorno = +b.getAttribute("data-g"); if (S.vista == "modi") S.modo = null; aggiornaTutto(true); }; });
+}
+/* ---------------- modi: utilità ---------------- */
+function probModi(i, liv){ // probabilità dei modi del livello liv nel giorno i
+  var P = MO.previsione, v = P.probabilita[i], out = {};
+  MO.componenti.forEach(function(c){ if (c.livello != liv) return; var s = 0; P.ordine.forEach(function(id, j){ if (id.indexOf(c.id) == 0) s += v[j]; }); out[c.id] = s; });
+  return out;
+}
+function modoDelGiorno(i, liv){ var p = probModi(i, liv), b = null; for (var k in p) if (!b || p[k] > p[b]) b = k; return {id: b, p: p[b]}; }
+function modoMostrato(){ return S.modo || modoDelGiorno(S.giorno, S.livello).id; }
+
+/* ---------------- frase in cima e titolo sulla mappa ---------------- */
+function frase(){
+  var g = S.giorno, gl = giornoLungo(g);
+  if (S.vista == "legami"){
+    var att = regimiAttivi(), r0 = REG[att[0].id], p0 = probRegimi(g)[att[0].id];
+    var cand = C.nodi.filter(function(n){ return n.id != CASA; }).map(function(n){ var p = versoCasa(n.id, [att[0].id]); return p ? {n: n, p: p} : null; }).filter(Boolean);
+    cand.sort(function(a, b){ return b.p.forza - a.p.forza; });
+    var primi = cand.filter(function(c){ return c.p.via.length == 1; }).slice(0, 2), lontano = cand.filter(function(c){ return c.p.ritardo >= 4; })[0];
+    var s = '<b>' + gl.charAt(0).toUpperCase() + gl.slice(1) + '</b>: ' + (S.regime ? 'mostro il regime che hai scelto, <b>' + esc(r0.nome.toLowerCase()) + '</b> (probabile al ' + pct(p0) + ').' : 'regime più probabile <b>' + esc(r0.nome.toLowerCase()) + '</b>, al ' + pct(p0) + '.');
+    if (primi.length) s += ' Il primo segnale arriva da ' + primi.map(function(c){ return '<b>' + esc(nomeCorto(c.n)) + '</b> (' + ore(c.p.ritardo) + ' prima)'; }).join(" e ");
+    if (lontano) s += '; da più lontano, ' + esc(nomeCorto(lontano.n)) + ' anticipa di circa ' + ore(lontano.p.ritardo) + '.'; else s += '.';
+    if (!S.regime && p0 < .5) s += ' <span style="color:#ffd9a0">Giorno incerto: vedi i regimi possibili sotto la cartina.</span>';
+    return s;
+  } else {
+    var id = modoMostrato(), c = COMP[id], pm = probModi(g, S.livello)[id];
+    return '<b>' + gl.charAt(0).toUpperCase() + gl.slice(1) + '</b>: ' + (S.modo ? 'stai guardando il modo' : 'modo più probabile') + ' <b>«' + esc(c.nome) + '»</b>' + (pm != null ? ', probabile al ' + pct(pm) : '') + '. ' + esc(c.effetti_casa.riga);
+  }
+}
+function aggiornaTitoloMappa(){
+  var t = "", inc = "";
+  if (S.vista == "legami" || (S.strati.legami && !S.strati.modo)){
+    var att = regimiAttivi();
+    t = '<b>' + (S.regime ? esc(REG[S.regime].nome) : att.length > 1 ? "Regimi possibili" : esc(REG[att[0].id].nome)) + '</b>' + (S.regime ? "scelto da te" : att.map(function(a){ return esc(REG[a.id].nome_breve) + " " + pct(a.peso); }).join(" · "));
+  }
+  if (S.strati.modo){ var c = COMP[modoMostrato()]; t += (t ? '<br>' : '') + '<b>Modo: ' + esc(c.nome_breve) + '</b>' + (S.strati.legami ? "" : esc(c.stagione)); }
+  if (S.vista == "legami" && !S.regime){ var p = probRegimi(S.giorno), mx = Math.max.apply(0, Object.keys(p).map(function(k){ return p[k]; })); if (mx < .5) inc = "Regime incerto: legami sbiaditi in proporzione alla probabilità"; }
+  $("cc-titmap").innerHTML = t + (inc ? '<i>' + inc + '</i>' : '');
+}
+/* ---------------- strati ---------------- */
+function disegnaStrati(){
+  var L = [["legami", "Legami", "#ffc23d"], ["modo", "Modo", "#ffa63d"], ["rilievo", "Rilievo", "#7f93ab"], ["nomi", "Nomi", "#cfd6de"]];
+  $("cc-strati").innerHTML = L.map(function(l){ return '<button class="cc-chip" data-s="' + l[0] + '" aria-pressed="' + S.strati[l[0]] + '"><i class="pt" style="background:' + l[2] + '"></i>' + l[1] + '</button>'; }).join("");
+  $("cc-strati").querySelectorAll(".cc-chip").forEach(function(b){ b.onclick = function(){ var k = b.getAttribute("data-s"); S.strati[k] = !S.strati[k]; aggiornaTutto(); }; });
+}
+/* ---------------- pannello sotto la mappa: legami ---------------- */
+function pannelloLegami(){
+  var p = probRegimi(S.giorno), h = '<p class="cc-lim"><b>Un limite onesto:</b> le stazioni vicine anticipano il tempo di casa di <b>ore, non di giorni</b>. Per i giorni lontani comanda la circolazione a grande scala: per questo, andando avanti nei 15 giorni, conta soprattutto quale regime è probabile.</p>';
+  h += '<div class="cc-sez">Regime del giorno<small>da dove arriva l\'aria; tocca per vedere i suoi legami</small></div><div class="cc-reg">';
+  var mx = 0; for (var k in p) mx = Math.max(mx, p[k]);
+  h += '<button class="cc-r auto" data-r="" aria-pressed="' + (S.regime == null) + '"><i class="dot" style="background:conic-gradient(' + C.regimi.map(function(r, i){ return r.colore + " " + (i * 72) + "deg " + ((i + 1) * 72) + "deg"; }).join(",") + ')"></i><span class="nm">Come previsto<small>i regimi possibili insieme, pesati con la loro probabilità</small></span><span></span></button>';
+  C.regimi.slice().sort(function(a, b){ return p[b.id] - p[a.id]; }).forEach(function(r){
+    h += '<button class="cc-r" data-r="' + r.id + '" aria-pressed="' + (S.regime == r.id) + '"><i class="dot" style="background:' + r.colore + '"></i><span class="nm">' + esc(r.nome) + '</span><span class="bar"><i style="width:' + (p[r.id] * 100) + '%;background:' + r.colore + '"></i></span><span class="pc">' + pct(p[r.id]) + '</span></button>';
+  });
+  h += '</div>';
+  var rs = S.regime ? REG[S.regime] : REG[regimiAttivi()[0].id];
+  h += '<div class="cc-card" style="margin-top:8px"><div style="font-weight:600;color:#fff">' + esc(rs.nome) + '</div><p class="cc-p" style="margin:4px 0">' + esc(rs.descrizione) + '</p><p class="cc-nota"><b style="color:#c9d1d9">Come si riconosce:</b> ' + esc(rs.come_si_riconosce) + ' Capita in circa ' + pct(rs.frequenza) + ' dei giorni.</p></div>';
+  h += '<div class="cc-sez">Filtri</div><div class="cc-card cc-filtri">';
+  h += '<div class="cc-riga"><span class="cc-lab">Che cosa anticipa</span>' + [["tutte", "Tutto"], ["pioggia", "Pioggia"], ["temperatura", "Temperatura"], ["vento", "Vento"], ["umidita", "Umidità"]].map(function(v){ return '<button class="cc-chip" data-v="' + v[0] + '" aria-pressed="' + (S.variabile == v[0]) + '">' + (v[0] != "tutte" ? '<i class="pt" style="background:' + VAR[v[0]].col + '"></i>' : '') + v[1] + '</button>'; }).join("") + '</div>';
+  h += '<div><span class="cc-lab">Forza minima dei legami</span><div class="cc-range"><input type="range" id="cc-fmin" min="0" max="0.8" step="0.05" value="' + S.fmin + '" aria-label="Forza minima"><output id="cc-fout"></output></div></div>';
+  h += '<button class="cc-tog" id="cc-solo" aria-pressed="' + S.soloCasa + '"><span>Solo i legami che arrivano a casa<br><small style="color:var(--mu)">anche passando per altri luoghi</small></span><i class="sw"></i></button>';
+  var n = archiVisibili().length; h += '<p class="cc-nota" id="cc-conta">Sulla cartina: ' + n + ' legami.</p></div>';
+  $("cc-sotto").innerHTML = h;
+  $("cc-sotto").querySelectorAll(".cc-r").forEach(function(b){ b.onclick = function(){ var r = b.getAttribute("data-r") || null; S.regime = (S.regime == r) ? null : r; aggiornaTutto(true); }; });
+  $("cc-sotto").querySelectorAll(".cc-chip[data-v]").forEach(function(b){ b.onclick = function(){ S.variabile = b.getAttribute("data-v"); aggiornaTutto(true); }; });
+  var rg = $("cc-fmin"), out = $("cc-fout");
+  function scrivi(){ out.textContent = num(+rg.value, 2) + " · " + (rg.value >= .6 ? "solo forti" : rg.value >= .35 ? "medi e forti" : rg.value > 0 ? "quasi tutti" : "tutti"); }
+  scrivi(); rg.oninput = function(){ S.fmin = +rg.value; scrivi(); disegna(); $("cc-conta").textContent = "Sulla cartina: " + archiVisibili().length + " legami."; };
+  $("cc-solo").onclick = function(){ S.soloCasa = !S.soloCasa; aggiornaTutto(true); };
+}
+/* ---------------- pannello sotto la mappa: modi ---------------- */
+function disegnaMini(cv, id){
+  var x = cv.getContext("2d"), w = cv.width, h = cv.height, box = PBOX, sc = Math.min(w / (box[2] - box[0]), h / (box[3] - box[1]));
+  var ox = (w - (box[2] - box[0]) * sc) / 2, oy = (h - (box[3] - box[1]) * sc) / 2;
+  x.fillStyle = "#0b0e12"; x.fillRect(0, 0, w, h);
+  x.save(); x.translate(ox - box[0] * sc, oy - box[1] * sc); x.scale(sc, sc);
+  var pa = new Path2D(K.regioni["Piemonte"]); x.fillStyle = "#151b22"; x.fill(pa); x.save(); x.clip(pa);
+  var f = campo(id, 60, Math.round(60 * (box[3] - box[1]) / (box[2] - box[0])), box); x.drawImage(f.canvas, box[0], box[1], box[2] - box[0], box[3] - box[1]); x.restore();
+  x.lineWidth = 1.2 / sc; x.strokeStyle = "#8a9bb0"; x.stroke(pa);
+  x.fillStyle = "#fff"; x.beginPath(); x.arc(0, 0, 3 / sc, 0, 7); x.fill(); x.restore();
+}
+function pannelloModi(){
+  var id = modoMostrato(), c = COMP[id], liv = S.livello, ids = MO.componenti.filter(function(m){ return m.livello == liv; }).map(function(m){ return m.id; });
+  var k = ids.indexOf(id), oggi = modoDelGiorno(0, liv);
+  var h = '<div class="cc-sez">Livello di dettaglio<small>lo stesso tempo scomposto in 2, 4, 8 o 16 modi</small></div>';
+  h += '<div class="cc-seg" id="cc-liv">' + MO.livelli.map(function(l){ return '<button data-l="' + l + '" aria-pressed="' + (l == liv) + '">' + l + ' modi</button>'; }).join("") + '</div>';
+  h += '<div class="cc-mcard"><div class="cc-mtop"><button id="cc-mprev" aria-label="Modo precedente">‹</button><div class="mt"><b>' + esc(c.nome) + '</b><small>' + (k + 1) + ' di ' + ids.length + (id == oggi.id ? ' · attivo oggi (' + pct(oggi.p) + ')' : '') + '</small></div><button id="cc-mnext" aria-label="Modo successivo">›</button></div>';
+  h += '<p class="cc-p"><b>A casa:</b> ' + esc(c.effetti_casa.riga) + '</p>';
+  h += '<div class="cc-blocchi" style="grid-template-columns:1fr 1fr 1fr"><div class="cc-bl"><div class="k">Frequenza</div><div class="v" style="font-size:16px">' + pct(c.frequenza) + '</div><div class="k">dei giorni</div></div><div class="cc-bl"><div class="k">Dura di solito</div><div class="v" style="font-size:16px">' + num(c.durata_tipica_giorni, 1) + ' g</div><div class="k">di fila</div></div><div class="cc-bl"><div class="k">Stagione</div><div class="v" style="font-size:13px;line-height:1.25">' + esc(c.stagione) + '</div></div></div>';
+  h += '<div style="font-size:13px;color:var(--mu);margin:6px 0 2px">Ultimi 45 giorni e prossimi 15</div><svg class="cc-mat" id="cc-serie" height="70"></svg>';
+  h += '<div class="cc-miniature" id="cc-mini">' + ids.map(function(m){ return '<button class="cc-mini" data-m="' + m + '" aria-pressed="' + (m == id) + '"><canvas width="128" height="152"></canvas><span>' + esc(COMP[m].nome_breve) + '</span></button>'; }).join("") + '</div></div>';
+  h += '<div class="cc-sez">Come si dividono i modi<small>tocca un riquadro per vederne la mappa</small></div><div class="cc-card" style="padding:8px">';
+  h += '<div class="cc-albtit"><span>2 modi</span><span>4 modi</span><span>8 modi</span><span>16 modi</span></div><div class="cc-albero" id="cc-albero"></div></div>';
+  var lt = liv == 16 ? 8 : liv == 2 ? 4 : liv;
+  h += '<div class="cc-sez">Che cosa viene dopo<small>con ' + lt + ' modi: probabilità che domani ci sia il modo della colonna, se oggi c\'è quello della riga</small></div><div class="cc-card" style="padding:8px 6px"><svg class="cc-mat" id="cc-trans"></svg><p class="cc-nota" id="cc-tnota"></p></div>';
+  $("cc-sotto").innerHTML = h;
+  $("cc-liv").querySelectorAll("button").forEach(function(b){ b.onclick = function(){ var l = +b.getAttribute("data-l"); var cur = COMP[modoMostrato()]; S.livello = l; // conservo la parentela
+      var cand = MO.componenti.filter(function(m){ return m.livello == l && (m.id.indexOf(cur.id) == 0 || cur.id.indexOf(m.id) == 0); }); S.modo = S.modo && cand.length ? cand[0].id : null; aggiornaTutto(); }; });
+  $("cc-mprev").onclick = function(){ S.modo = ids[(k - 1 + ids.length) % ids.length]; aggiornaTutto(); };
+  $("cc-mnext").onclick = function(){ S.modo = ids[(k + 1) % ids.length]; aggiornaTutto(); };
+  $("cc-mini").querySelectorAll(".cc-mini").forEach(function(b){ disegnaMini(b.querySelector("canvas"), b.getAttribute("data-m")); b.onclick = function(){ S.modo = b.getAttribute("data-m"); aggiornaTutto(); }; });
+  var sel = $("cc-mini").querySelector('[aria-pressed="true"]'); if (sel) sel.scrollIntoView({block: "nearest", inline: "center"});
+  serie(id); albero(id); transizioni(lt, id);
+}
+function serie(id){
+  var sv = $("cc-serie"), w = sv.clientWidth || 320, h = 70, A = MO.attivazione_recente, P = MO.previsione, n = A.valori.length + P.probabilita.length, bw = w / n, c = COMP[id], s = "";
+  function val(v, ord){ var t = 0; ord.forEach(function(o, j){ if (o.indexOf(id) == 0) t += v[j]; }); return t; }
+  A.valori.forEach(function(v, i){ var y = val(v, A.ordine); s += '<rect x="' + (i * bw + .5).toFixed(1) + '" y="' + (h - 16 - y * (h - 22)).toFixed(1) + '" width="' + Math.max(1, bw - 1).toFixed(1) + '" height="' + (y * (h - 22)).toFixed(1) + '" fill="' + c.colore + '" opacity=".9"/>'; });
+  P.probabilita.forEach(function(v, j){ var i = A.valori.length + j, y = val(v, P.ordine); s += '<rect x="' + (i * bw + .5).toFixed(1) + '" y="' + (h - 16 - y * (h - 22)).toFixed(1) + '" width="' + Math.max(1, bw - 1).toFixed(1) + '" height="' + (y * (h - 22)).toFixed(1) + '" fill="' + c.colore + '" opacity="' + (j == S.giorno ? .95 : .4) + '"/>'; });
+  var xo = A.valori.length * bw; s += '<line x1="' + xo + '" x2="' + xo + '" y1="2" y2="' + (h - 14) + '" stroke="#fff" stroke-dasharray="2 2" opacity=".6"/>';
+  s += '<line x1="0" x2="' + w + '" y1="' + (h - 16) + '" y2="' + (h - 16) + '" stroke="#2a3038"/>';
+  s += '<text x="0" y="' + (h - 2) + '" font-size="11" fill="#8b949e">45 giorni fa</text><text x="' + (xo - 4) + '" y="' + (h - 2) + '" font-size="11" fill="#c9d1d9" text-anchor="end">oggi</text><text x="' + w + '" y="' + (h - 2) + '" font-size="11" fill="#8b949e" text-anchor="end">previsione</text>';
+  sv.setAttribute("viewBox", "0 0 " + w + " " + h); sv.setAttribute("width", w); sv.innerHTML = s;
+}
+function albero(id){
+  var foglie = MO.componenti.filter(function(c){ return c.livello == 16; }), h = "";
+  // griglia: righe = 16 foglie, colonne = livelli; ogni componente occupa le righe dei suoi discendenti
+  [2, 4, 8, 16].forEach(function(l, col){
+    MO.componenti.filter(function(c){ return c.livello == l; }).forEach(function(c){
+      var rr = foglie.map(function(f, i){ return f.id.indexOf(c.id) == 0 ? i : -1; }).filter(function(i){ return i >= 0; });
+      var on = c.id == id, attivo = c.id == modoDelGiorno(0, l).id;
+      h += '<button class="cc-nodoal" data-m="' + c.id + '" aria-pressed="' + on + '" style="grid-column:' + (col + 1) + ';grid-row:' + (rr[0] + 1) + '/span ' + rr.length + ';border-left-color:' + c.colore + '">' + esc(c.nome_breve) + (attivo ? '<small>● oggi</small>' : (l <= 8 ? '<small>' + pct(c.frequenza) + '</small>' : '')) + (l <= 4 ? '<canvas width="128" height="152" data-c="' + c.id + '"></canvas>' : '') + '</button>';
+    });
+  });
+  var A = $("cc-albero"); A.style.gridTemplateRows = "repeat(16, minmax(44px, auto))"; A.innerHTML = h;
+  A.querySelectorAll("canvas[data-c]").forEach(function(cv){ disegnaMini(cv, cv.getAttribute("data-c")); });
+  A.querySelectorAll(".cc-nodoal").forEach(function(b){ b.onclick = function(){ var m = b.getAttribute("data-m"); S.livello = COMP[m].livello; S.modo = m; S.strati.modo = true; aggiornaTutto(); MAP.scrollIntoView({behavior: RIDUCI ? "auto" : "smooth", block: "start"}); }; });
+}
+function transizioni(liv, idSel){
+  var T = MO.transizioni[String(liv)], ord = T.ordine, M = T.matrice, n = ord.length, sv = $("cc-trans"), w = sv.clientWidth || 320;
+  var lab = Math.min(118, w * .36), cw = (w - lab - 4) / n, top = 30, h = top + n * Math.max(cw, 30) + 4, ch = (h - top - 4) / n;
+  var cur = ord.filter(function(o){ return idSel.indexOf(o) == 0 || o.indexOf(idSel) == 0; })[0];
+  var maxOff = 0; M.forEach(function(r, i){ r.forEach(function(p, j){ if (i != j) maxOff = Math.max(maxOff, p); }); });
+  var s = "";
+  ord.forEach(function(o, j){ var x = lab + cw * (j + .5); s += '<circle cx="' + x + '" cy="10" r="5" fill="' + COMP[o].colore + '"/><text x="' + x + '" y="26" font-size="10.5" fill="#8b949e" text-anchor="middle">' + (j + 1) + '</text>'; });
+  ord.forEach(function(o, i){
+    var y = top + ch * i, on = o == cur;
+    if (on) s += '<rect x="0" y="' + y + '" width="' + w + '" height="' + ch + '" fill="#0f2236" rx="6"/>';
+    s += '<circle cx="7" cy="' + (y + ch / 2) + '" r="4.5" fill="' + COMP[o].colore + '"/><text x="16" y="' + (y + ch / 2 + 4) + '" font-size="12" fill="' + (on ? "#fff" : "#c9d1d9") + '">' + (i + 1) + ' ' + esc(COMP[o].nome_breve).slice(0, 15) + '</text>';
+    M[i].forEach(function(p, j){
+      var x = lab + cw * (j + .5), yc = y + ch / 2, rmax = Math.min(cw, ch) * .46;
+      if (i == j){ s += '<circle cx="' + x + '" cy="' + yc + '" r="' + rmax.toFixed(1) + '" fill="none" stroke="#6e7781" stroke-width="1.2" stroke-dasharray="2 2"/><text x="' + x + '" y="' + (yc + 3.5) + '" font-size="10" fill="#9aa4b2" text-anchor="middle">' + Math.round(p * 100) + '</text>'; return; }
+      var r = Math.sqrt(p / maxOff) * rmax;
+      s += '<circle cx="' + x + '" cy="' + yc + '" r="' + Math.max(1.3, r).toFixed(1) + '" fill="' + COMP[ord[j]].colore + '" opacity="' + (p < .02 ? .35 : .95) + '"/>';
+      if (r > 9.5) s += '<text x="' + x + '" y="' + (yc + 3.5) + '" font-size="10" font-weight="700" fill="#06101b" text-anchor="middle">' + Math.round(p * 100) + '</text>';
+    });
+  });
+  sv.setAttribute("viewBox", "0 0 " + w + " " + h); sv.setAttribute("height", h); sv.innerHTML = s;
+  var i = ord.indexOf(cur), riga = M[i].map(function(p, j){ return {p: p, j: j}; }).filter(function(o){ return o.j != i; }).sort(function(a, b){ return b.p - a.p; }).slice(0, 2);
+  $("cc-tnota").innerHTML = 'Sulla diagonale (cerchio tratteggiato) la probabilità di <b style="color:#c9d1d9">restare</b> nello stesso modo; i cerchi colorati, in scala propria, i passaggi a un altro modo. Dopo <b style="color:#fff">«' + esc(COMP[cur].nome_breve) + '»</b> resta lo stesso modo nel ' + pct(M[i][i]) + ' dei casi (dura in media ' + num(COMP[cur].durata_tipica_giorni, 1) + ' giorni); se cambia, di solito arriva ' + riga.map(function(o){ return '«' + esc(COMP[ord[o.j]].nome_breve) + '» (' + pct(o.p) + ')'; }).join(" o ") + '.';
+}
+
+/* ---------------- inquadratura automatica sui legami visibili ---------------- */
+function inquadra(){
+  var box;
+  if (S.strati.legami){
+    var L = archiVisibili(), ids = {}, soglia = Math.max(.45, S.fmin); ids[CASA] = 1;
+    L.forEach(function(a){ if (a.forza >= soglia || L.length < 8) ids[a.da] = ids[a.a] = 1; });
+    var xs = [], ys = []; Object.keys(ids).forEach(function(id){ xs.push(NODI[id].x); ys.push(NODI[id].y); });
+    box = [Math.min.apply(0, xs), Math.min.apply(0, ys), Math.max.apply(0, xs), Math.max.apply(0, ys)];
+    var cx = (box[0] + box[2]) / 2, cy = (box[1] + box[3]) / 2, w = Math.max(70, (box[2] - box[0]) * 1.25), h = Math.max(70, (box[3] - box[1]) * 1.25);
+    box = [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2];
+    // non oltre il Piemonte intero
+    if (w > CORNICE[2] - CORNICE[0] || h > CORNICE[3] - CORNICE[1]) box = CORNICE;
+  } else box = CORNICE;
+  // spazio per il titolo in alto
+  var hh = box[3] - box[1]; box = [box[0], box[1] - hh * .16, box[2], box[3] + hh * .04];
+  vistaInsieme(box, true);
+}
+/* ---------------- aggiornamento generale ---------------- */
+function aggiornaTutto(inq){
+  R.querySelectorAll(".cc-seg[role=tablist] button").forEach(function(b){ b.setAttribute("aria-pressed", b.getAttribute("data-v") == S.vista); });
+  $("cc-frase").innerHTML = frase();
+  disegnaGiorni(); disegnaStrati();
+  SVG.querySelector("#cc-fasce").style.display = S.strati.rilievo ? "" : "none"; imgOmbra.style.display = S.strati.rilievo ? "" : "none";
+  mostraCampo(); disegna();
+  if (S.vista == "legami") pannelloLegami(); else pannelloModi();
+  if (inq) inquadra();
+  var gs = $("cc-giorni").querySelector('[aria-pressed="true"]'); if (gs){ var bx = $("cc-giorni"); var l = gs.offsetLeft - bx.clientWidth / 2 + gs.clientWidth / 2; bx.scrollLeft = Math.max(0, l); }
+}
+R.querySelectorAll(".cc-seg[role=tablist] button").forEach(function(b){ b.onclick = function(){
+  var v = b.getAttribute("data-v"); if (v == S.vista) return; S.vista = v; S.sel = null;
+  if (v == "modi"){ S.strati.modo = true; S.strati.legami = false; } else { S.strati.legami = true; S.strati.modo = false; }
+  aggiornaTutto(true); }; });
+var stile = document.createElement("style"); stile.textContent = "@keyframes cc-scorri{to{stroke-dashoffset:-22}} .cc-pulse{transform-box:fill-box;transform-origin:center;animation:cc-pulsa 2.4s ease-out infinite} @keyframes cc-pulsa{0%{opacity:.9;transform:scale(.8)}100%{opacity:0;transform:scale(1.5)}}"; R.appendChild(stile);
+
+costruisciBase(); misura(); vistaInsieme(CORNICE, false); aggiornaTutto(); RIDUCI_TMP = RIDUCI; RIDUCI = true; inquadra(); RIDUCI = RIDUCI_TMP;
+var wPrec = W;
+window.addEventListener("resize", function(){ var w = MAP.clientWidth; if (!w || Math.abs(w - wPrec) < 2) return; wPrec = w; misura(); vistaInsieme(CORNICE, false); aggiornaTutto(true); });
+return { stato: S, ridisegna: function(){ aggiornaTutto(true); }, nodiSchermo: function(){ var r = SVG.getBoundingClientRect(); return CACHE.nodi.map(function(o){ return {x: r.left + o.n.px, y: r.top + o.n.py}; }); }, schermo: function(id){ var r = SVG.getBoundingClientRect(), n = NODI[id]; return {x: r.left + (n.px != null ? n.px : sx(n.x)), y: r.top + (n.py != null ? n.py : sy(n.y))}; }, vista: function(v){ S.vista = v; aggiornaTutto(); } };
+}
+
+/* ===== pagina autonoma: carica i tre file e monta il modulo ===== */
+(function(){
+  if (window.CC_NON_MONTARE) return;
+  var base = "";
+  Promise.all(["causalita.json", "modi.json", "piemonte.json"].map(function(f){ return fetch(base + f, {cache: "no-cache"}).then(function(r){ if (!r.ok) throw new Error(f + " " + r.status); return r.json(); }); }))
+    .then(function(d){ window.CC = montaCausalita(document.getElementById("modulo"), {causalita: d[0], modi: d[1], cartina: d[2]}); })
+    .catch(function(e){ document.getElementById("modulo").innerHTML = '<p style="padding:16px;color:#ffd166">Non riesco a leggere i dati della causalità (' + String(e.message).replace(/</g, "&lt;") + ').</p>'; });
+})();
+</script>
+</body>
+</html>
