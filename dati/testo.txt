@@ -1,0 +1,30 @@
+Settimana con pioggia giovedì, domenica, mercoledì (24 mm in tutta la settimana); minime fra 2° e 7°, massime fra 7° e 15°. La seconda settimana ha una probabilità media di reggere del 60 %: da prendere con cautela.
+
+Giovedì 19/11: rovesci e schiarite, 5°/11°, pioggia 6,2 mm (98 %), sole 7 h · probabilità che regga 91 %
+Venerdì 20/11: sereno, 5°/15°, asciutto, sole 9 h · probabilità che regga 82 %
+Sabato 21/11: sereno, 7°/14°, asciutto, sole 7 h · probabilità che regga 83 %
+Domenica 22/11: pioggia debole, 3°/7°, pioggia 11,3 mm (75 %), sole 0 h · probabilità che regga 74 %
+Lunedì 23/11: nebbia al mattino, poi sole, 3°/14°, asciutto, sole 8 h · probabilità che regga 79 %
+Martedì 24/11: nuvoloso, 2°/8°, asciutto, sole 0 h · probabilità che regga 78 %
+Mercoledì 25/11: pioggia debole, 6°/8°, pioggia 6,3 mm (70 %), sole 0 h · probabilità che regga 67 %
+Giovedì 26/11: pioggia debole, 3°/7°, pioggia 16,4 mm (60 %), sole 0 h · probabilità che regga 57 %
+Venerdì 27/11: pioviggine, 3°/8°, pioggia 1,6 mm (28 %), sole 0 h · probabilità che regga 62 %
+Sabato 28/11: rovesci, 5°/7°, pioggia 15,8 mm (30 %), sole 0 h · probabilità che regga 59 %
+Domenica 29/11: pioviggine, 5°/7°, pioggia 14,6 mm (35 %), sole 0 h · probabilità che regga 56 %
+Lunedì 30/11: pioviggine, 2°/9°, pioggia 5,8 mm (35 %), sole 0 h · probabilità che regga 56 %
+Martedì 01/12: nebbia al mattino, poi sole, 0°/9°, asciutto, sole 5 h · probabilità che regga 61 %
+Mercoledì 02/12: sereno, 1°/10°, asciutto, sole 8 h · probabilità che regga 61 %
+Giovedì 03/12: poco nuvoloso, 1°/10°, asciutto, sole 9 h · probabilità che regga 66 %
+
+Gelo (minima della notte, dalle 18 del giorno prima alle 12 del giorno indicato): Martedì 01/12: minima della notte -0,2° alle 06, 2 ore sotto zero, gelo lieve, mattino soleggiato; Mercoledì 02/12: minima della notte 0,7° alle 05, 0 ore sotto zero, senza gelo, mattino soleggiato. Probabilità di 3 notti di fila sotto −2 °C: 6%, sotto −5 °C: 0%. Sole: 6 giorni bui di fila da mer 25/11 a lun 30/11 (probabilità di 3 giorni bui di fila: 20%).
+
+Rispetto a ieri: minime in rialzo, massime in lieve calo (variazione media delle minime +2,1 °C, delle massime -0,6 °C); pioggia complessiva in aumento (+57,2 mm sui giorni in comune); verdetto piove/non piove cambiato in ven 27/11 (ora piove), sab 28/11 (ora piove), dom 29/11 (ora piove), lun 30/11 (ora piove), mer 02/12 (ora asciutto); rischio di gelo in diminuzione (variazione più grande -84 punti percentuali); affidabilità media in aumento (variazione media +4,0 punti percentuali).
+
+Clima: Prima settimana: minime più calde di 2,6 °C e massime più calde di 0,6 °C rispetto alla media 2016–2025 dello stesso periodo; pioggia prevista 24 mm contro 11 mm, valore mediano degli ultimi dieci anni nella stessa settimana. Dall'ottavo al 15° giorno: minime più calde di 2,5 °C, massime più fredde di 0,6 °C; pioggia prevista 54 mm contro 12 mm, valore mediano degli ultimi dieci anni negli stessi 8 giorni. In questo periodo dell'anno, negli ultimi dieci anni, la minima è scesa sotto zero nel 44% delle notti.
+
+Oltre i 15 giorni (modello esteso ECMWF): settimana 07/12–13/12 più calda del normale (+1,2 °C); settimana 14/12–20/12 più calda del normale (+1,4 °C); settimana 21/12–27/12 più calda del normale (+1,7 °C)
+
+Da tenere d'occhio:
+Poco sole da mercoledì 25/11 a lunedì 30/11: 6 giorni bui di fila (radiazione sotto il 35 % del cielo sereno); probabilità (51 scenari ECMWF) di almeno 3 giorni bui di fila entro i 15 giorni: 20 % — seconda settimana: affidabilità media 60 %
+
+Com'è andata — Previsione emessa giovedì 12/11/2026, verificata su 7 giorni: minime: errore medio assoluto 1,6 °C, bias -0,7 °C (troppo fredde), entro ±2 °C in 5 giorni su 7 (71 %); massime: errore medio assoluto 1,2 °C, bias -0,4 °C (troppo fredde), entro ±2 °C in 5 giorni su 7 (71 %); pioggia sì/no indovinata in 6 giorni su 7 (86 %). Affidabilità dichiarata in media 70 %; è andata bene (minima e massima entro ±2 °C e pioggia sì/no giusta) in 3 giorni su 7 (43 %).

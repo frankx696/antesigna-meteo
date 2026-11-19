@@ -40,7 +40,9 @@
 (function(){
   "use strict";
   var SITO = "sentinellabollettino.wordpress.com";
-  var API = "https://public-api.wordpress.com/wp/v2/sites/" + SITO + "/pages/";
+  // la previsione (numeri, tabelle, grafici) e' nei file dati/ di questo stesso sito, rifatti ogni mattina da un programma automatico;
+  // i due testi scritti a mano (sintesi e "tempo raccontato") arrivano da una piccola pagina WordPress e sostituiscono quelli automatici
+  var TESTI = "https://public-api.wordpress.com/wp/v2/sites/" + SITO + "/pages?slug=antesigna-testi&_fields=content&_=";
   var VISTE = { compatta: {id: 458, url: "https://" + SITO + "/antesigna-meteo/"}, completa: {id: 557, url: "https://" + SITO + "/antesigna-meteo-completo/"} };
   var VECCHIO_MS = 5 * 60 * 1000;          // al ritorno in primo piano ricarico se sono passati piu' di 5 minuti
   var vista = "compatta", ultimo = {}, pos = 0, max = 0;   // pos/max: posizione nella cronologia interna (per abilitare avanti/indietro)
@@ -57,20 +59,33 @@
     // le barre di pulsanti scritte dentro la pagina WordPress qui sono doppie: le tolgo (ci sono quelle fisse in alto)
     Array.prototype.forEach.call(p.querySelectorAll('a[href*="?agg="]'), function(a){ if(a.parentNode && a.parentNode.parentNode) a.parentNode.parentNode.removeChild(a.parentNode); });
     var inv = p.querySelector("#invia"); if(inv && inv.parentNode) inv.parentNode.removeChild(inv);
+    testiAMano(p, dati);
     $("quando").textContent = "di " + giorno(dati.mod) + " " + ora(dati.mod) + " · letta " + ora(dati.letto);
     if(ancora){ var el = document.getElementById(ancora); if(el){ if(el.tagName === "DETAILS") el.open = true; setTimeout(function(){ window.scrollTo(0, el.getBoundingClientRect().top + window.pageYOffset - 70); }, 60); return; } }
   }
+
+  // testi scritti a mano: valgono solo se portano la stessa data della previsione mostrata
+  function testiAMano(p, dati){
+    if(!dati.testi || !dati.emessa) return;
+    var d = new DOMParser().parseFromString(dati.testi, "text/html"), blocco = d.getElementById("am-testi-" + dati.emessa); if(!blocco) return;
+    var s = blocco.querySelector("#am-sintesi"), r = blocco.querySelector("#am-prosa"), qs = p.querySelector("#txt-sintesi"), qr = p.querySelector("#txt-prosa");
+    function par(da, stile){ var h = ""; Array.prototype.forEach.call(da.querySelectorAll("p"), function(x, i, tutti){ var t = (x.textContent || "").trim(); if(t){ var e = document.createElement("p"); e.textContent = t; e.setAttribute("style", stile(i, tutti.length)); h += e.outerHTML; } }); return h; }
+    if(s && qs){ var hs = par(s, function(i, n){ return "margin:0" + (i < n - 1 ? " 0 8px 0" : ""); }); if(hs) qs.innerHTML = hs; }
+    if(r && qr){ var hr = par(r, function(){ return "font-size:15px;line-height:1.6;margin:8px 0"; }); if(hr) qr.innerHTML = hr; }
+  }
+  function prendi(u, tipo){ return fetch(u + (u.indexOf("?") < 0 ? "?_=" : "") + Date.now(), {cache: "no-store"}).then(function(r){ if(!r.ok) throw new Error("risposta " + r.status); return tipo === "json" ? r.json() : r.text(); }); }
 
   function carica(v, opz){
     opz = opz || {};
     var c = leggi(v);
     if(c && !opz.silenzioso && opz.subito !== false){ vista = v; mostra(v, c, opz.ancora); }
     $("frec").className = "gira";
-    return fetch(API + VISTE[v].id + "?_fields=modified_gmt,content&_=" + Date.now(), {cache: "no-store"})
-      .then(function(r){ if(!r.ok) throw new Error("risposta " + r.status); return r.json(); })
-      .then(function(j){
-        var dati = {html: j.content.rendered, mod: Date.parse(j.modified_gmt + "Z"), letto: Date.now()};
-        var cambiata = !c || c.mod !== dati.mod;
+    return Promise.all([prendi("dati/" + v + ".html", "text"), prendi("dati/stato.json", "json"),
+                        prendi(TESTI, "json").then(function(a){ return a && a[0] && a[0].content ? a[0].content.rendered : ""; }).catch(function(){ return (c && c.testi) || ""; })])
+      .then(function(ris){
+        var st = ris[1], dati = {html: ris[0], mod: Date.parse(st.costruita), emessa: st.emessa, testi: ris[2], letto: Date.now()};
+        if(ris[0].length < 5000) throw new Error("pagina incompleta");
+        var cambiata = !c || c.mod !== dati.mod || (c.testi || "") !== (dati.testi || "");
         salva(v, dati); ultimo[v] = Date.now(); $("avviso").style.display = "none";
         if(vista === v || !c){ vista = v; if(cambiata || !c || opz.forza){ var y = window.pageYOffset; mostra(v, dati, opz.ancora); if(!opz.ancora && c && !opz.inalto) window.scrollTo(0, y); } else { $("quando").textContent = "di " + giorno(dati.mod) + " " + ora(dati.mod) + " · letta " + ora(dati.letto); } }
       })
