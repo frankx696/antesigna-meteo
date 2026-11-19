@@ -42,9 +42,9 @@ html,body{margin:0;background:#000;color:#e6e8eb;font-family:-apple-system,Blink
 .cc-chip[aria-pressed=true]{background:#13263a;border-color:#2b5b8a;color:#fff}
 .cc-chip .pt{width:8px;height:8px;border-radius:50%;display:inline-block}
 /* mappa */
-.cc-mappa{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#05080c;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.cc-mappa{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#05080c;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:contain}
 .cc-mappa svg{display:block;width:100%;height:100%}
-.cc-mappa.zoom{touch-action:none}
+
 .cc-ctl{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:2}
 .cc-ctl button,.cc-leg-b{width:44px;height:44px;border-radius:12px;border:1px solid #2a3038;background:rgba(17,20,25,.88);color:#cfe6ff;font-size:22px;font-weight:500;display:flex;align-items:center;justify-content:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .cc-leg-b{position:absolute;left:8px;bottom:8px;width:auto;height:36px;padding:0 11px 0 8px;font-size:13px;font-weight:600;gap:6px;z-index:2;border-radius:18px}
@@ -211,7 +211,7 @@ function costruisciBase(){
   var defs = el("defs", {}, SVG);
   var cp = el("clipPath", {id: "cc-clip-pie"}, defs); el("path", {d: K.regioni["Piemonte"]}, cp);
   RIT.forEach(function(r, i){
-    var m = el("marker", {id: "cc-fr" + i, viewBox: "0 0 10 10", refX: "7", refY: "5", markerWidth: "3.6", markerHeight: "3.6", orient: "auto-start-reverse", markerUnits: "strokeWidth"}, defs);
+    var m = el("marker", {id: "cc-fr" + i, viewBox: "0 0 10 10", refX: "8.5", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse", markerUnits: "userSpaceOnUse"}, defs);
     el("path", {d: "M0 0L10 5L0 10L2.5 5z", fill: r.col}, m);
   });
   el("rect", {x: 0, y: 0, width: "100%", height: "100%", fill: "#06101b"}, SVG); // mare
@@ -297,7 +297,7 @@ function mostraCampo(){
 }
 
 /* ---------------- dimensioni e trasformazione ---------------- */
-var CORNICE = [-125, -125, 115, 160]; // vista iniziale: Piemonte intero (km)
+var CORNICE = [-125, -125, 115, 160], KMIN = .9, KMAX = 16; // vista iniziale: Piemonte intero (km)
 function misura(){
   W = MAP.clientWidth; H = Math.round(Math.min(Math.max(W * 1.3, 400), window.innerHeight * .8, 760));
   MAP.style.height = H + "px"; SVG.setAttribute("viewBox", "0 0 " + W + " " + H);
@@ -309,7 +309,7 @@ function vistaInsieme(box, anim){
   vaiA({k: k, tx: W / 2 - cx * s0 * k, ty: H / 2 - cy * s0 * k}, anim);
 }
 function limita(v){
-  v.k = Math.max(.9, Math.min(14, v.k));
+  v.k = Math.max(KMIN, Math.min(KMAX, v.k));
   var sc = s0 * v.k, x0 = BOX[0] * sc, x1 = BOX[2] * sc, y0 = BOX[1] * sc, y1 = BOX[3] * sc;
   v.tx = Math.min(-x0 + W * .35, Math.max(W * .65 - x1, v.tx)); v.ty = Math.min(-y0 + H * .35, Math.max(H * .65 - y1, v.ty));
   return v;
@@ -340,9 +340,9 @@ function applica(completo){
   if (vb.getAttribute("data-s") != String(lontano)){ vb.setAttribute("data-s", lontano); vb.setAttribute("aria-label", lontano ? "Tutto il Piemonte" : "Dintorni di casa");
     vb.innerHTML = lontano ? '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#cfe6ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3V8M14 3H19V8M8 19H3V14M14 19H19V14"/></svg>' : '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#cfe6ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8.5" stroke-dasharray="2.5 2.5"/><path d="M6.8 11.5L11 7.6 15.2 11.5M8.2 10.4V15H13.8V10.4"/></svg>'; }
   if (completo || !Vdis) disegna();
-  else { var r = V.k / Vdis.k; gOver.setAttribute("transform", "matrix(" + r + " 0 0 " + r + " " + (V.tx - Vdis.tx * r) + " " + (V.ty - Vdis.ty * r) + ")"); programma(); }
+  else if (!rafD) rafD = requestAnimationFrame(function(){ rafD = 0; disegna(); });
 }
-var tProg = 0;
+var tProg = 0, rafD = 0;
 function programma(){ clearTimeout(tProg); tProg = setTimeout(function(){ disegna(); }, 140); }
 function sx(x){ return x * s0 * V.k + V.tx; } function sy(y){ return y * s0 * V.k + V.ty; }
 
@@ -434,7 +434,8 @@ function curva(a, b, rA, rB, piega){
   var p1 = verso(x1, y1, cx, cy, rA + 1), p2 = verso(x2, y2, cx, cy, rB + 3);
   return {d: "M" + p1[0].toFixed(1) + " " + p1[1].toFixed(1) + "Q" + cx.toFixed(1) + " " + cy.toFixed(1) + " " + p2[0].toFixed(1) + " " + p2[1].toFixed(1), p1: p1, c: [cx, cy], p2: p2, L: L};
 }
-function raggio(n, imp){ if (n.tipo == "casa") return 11 + 1.5 * Math.log2(Math.max(1, V.k)); return (4.2 + 8.5 * Math.sqrt(imp[n.id] || 0)) * (1 + .22 * Math.log2(Math.max(1, V.k))); }
+function crescita(f){ return 1 + f * Math.log2(Math.max(1, V.k)); } // cresce pochissimo con l'ingrandimento
+function raggio(n, imp){ if (n.tipo == "casa") return 9.5 * crescita(.05); return (3.2 + 5.6 * Math.sqrt(imp[n.id] || 0)) * crescita(.06); }
 
 function disegna(){
   Vdis = {k: V.k, tx: V.tx, ty: V.ty}; gOver.removeAttribute("transform");
@@ -456,16 +457,38 @@ function disegna(){
   // legami: prima i deboli, poi i forti
   L.sort(function(a, b){ return a.forza * a.peso - b.forza * b.peso; });
   var hA = "", hAn = "", geo = [];
+  var CV = {}, casa = NODI[CASA], rc = R0[CASA] + 3, vent = [], hRing = "";
   L.forEach(function(a){
     var A = NODI[a.da], B = NODI[a.a]; if (!R0[a.da] || !R0[a.a]) return;
-    var cv = curva(A, B, R0[a.da], R0[a.a], .16), bi = ritBin(a.ritardo_ore), col = RIT[bi].col;
-    var w = (.9 + 6.2 * a.forza) * (1 + .15 * Math.log2(Math.max(1, V.k)));
+    var cv = curva(A, B, R0[a.da], R0[a.a], .16); CV[a.i] = cv;
+    if (a.a == CASA || a.da == CASA){ var q = a.a == CASA ? cv.c : cv.c; vent.push({a: a, cv: cv, ang: Math.atan2(q[1] - casa.py, q[0] - casa.px), arrivo: a.a == CASA}); }
+  });
+  if (vent.length > 1){
+    rc = R0[CASA] + 3 + Math.min(18, 1.8 * vent.length); // ventaglio su un anello attorno a casa
+    hRing = '<circle cx="' + casa.px.toFixed(1) + '" cy="' + casa.py.toFixed(1) + '" r="' + (rc - 1).toFixed(1) + '" fill="#ffffff" fill-opacity=".04" stroke="#ffffff" stroke-opacity=".22" stroke-width="1" stroke-dasharray="2 3"/>';
+    vent.sort(function(x, y){ return x.ang - y.ang; });
+    var dmin = Math.min(.5, 2 * Math.PI / vent.length * .92);
+    for (var it = 0; it < 250; it++){ for (var j = 0; j < vent.length; j++){ var x = vent[j], y = vent[(j + 1) % vent.length], d = y.ang - x.ang + (j == vent.length - 1 ? 2 * Math.PI : 0); if (d < dmin){ var sp = (dmin - d) / 2; x.ang -= sp; y.ang += sp; } } }
+    vent.forEach(function(o){
+      var px = casa.px + Math.cos(o.ang) * rc, py = casa.py + Math.sin(o.ang) * rc, cv = o.cv;
+      if (o.arrivo){ cv.p2 = [px, py]; } else { cv.p1 = [px, py]; }
+      // il punto di controllo si allinea al ventaglio, così la curva entra dritta
+      var cx = casa.px + Math.cos(o.ang) * (rc + Math.min(40, cv.L * .3)), cy = casa.py + Math.sin(o.ang) * (rc + Math.min(40, cv.L * .3));
+      cv.c = [(cv.c[0] + cx) / 2, (cv.c[1] + cy) / 2];
+      cv.d = "M" + cv.p1[0].toFixed(1) + " " + cv.p1[1].toFixed(1) + "Q" + cv.c[0].toFixed(1) + " " + cv.c[1].toFixed(1) + " " + cv.p2[0].toFixed(1) + " " + cv.p2[1].toFixed(1);
+    });
+  }
+  L.forEach(function(a){
+    var A = NODI[a.da], B = NODI[a.a]; if (!CV[a.i]) return;
+    var cv = CV[a.i], bi = ritBin(a.ritardo_ore), col = RIT[bi].col;
+    var vicinoCasa = a.a == CASA || a.da == CASA;
+    var w = (vicinoCasa ? .8 + 1.4 * a.forza : .6 + 2.6 * a.forza) * crescita(.05);
     var op = (.28 + .72 * a.sicurezza) * (.25 + .75 * a.peso);
     var spento = sel && ((sel.tipo == "nodo" && a.da != sel.id && a.a != sel.id && !perc[a.i]) || (sel.tipo == "arco" && sel.i != a.i));
     if (spento) op *= .18;
     var ev = sel && ((sel.tipo == "arco" && sel.i == a.i) || perc[a.i]);
     var dash = a.sicurezza < .6 ? ' stroke-dasharray="' + (w * 1.3 + 2).toFixed(1) + ' ' + (w * 1.1 + 3).toFixed(1) + '"' : "";
-    if (ev) hA += '<path d="' + cv.d + '" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="' + (w + 6) + '" stroke-linecap="round"/>';
+    if (ev) hA += '<path d="' + cv.d + '" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="' + (w + 4) + '" stroke-linecap="round"/>';
     hA += '<path d="' + cv.d + '" fill="none" stroke="' + col + '" stroke-opacity="' + op.toFixed(2) + '" stroke-width="' + w.toFixed(2) + '" stroke-linecap="round"' + dash + ' marker-end="url(#cc-fr' + bi + ')"/>';
     if (!RIDUCI && !spento && a.forza >= .3 && a.peso > .5 && cv.L > 18){
       var per = 22, du = RIT[bi].dur;
@@ -473,7 +496,7 @@ function disegna(){
     }
     geo.push({a: a, cv: cv, w: w});
   });
-  h += hA + hAn;
+  h += hRing + hA + hAn;
   // nodi
   var nodiOrd = nodiV.slice().sort(function(a, b){ return (imp[a.id] || 0) - (imp[b.id] || 0); });
   var NN = [];
@@ -573,46 +596,79 @@ function etichetteNodi(nodiV, imp, R0, conn){
 }
 function nomeCorto(n){ return {radar_bric: "Radar Bric della Croce", radar_settepani: "Radar Settepani", q_lig: "Quota Mar Ligure", q_ovest: "Quota Alpi Cozie", q_nord: "Quota Alpi Graie", q_torino: "Quota sopra Torino", q_est: "Quota Lombardia", area_mare: "Mar Ligure", area_langhe: "Langhe", area_lomellina: "Lomellina", brandizzo: "Brandizzo", torino: "Torino", caselle: "Caselle"}[n.id] || n.nome; }
 
-/* ---------------- tocchi, pizzicamento e spostamento ---------------- */
-var tocchi = {}, gesto = null, ultimoTap = 0, mosso = false;
+/* ---------------- tocchi, pizzicamento e spostamento (eventi puntatore + riserva Safari) ---------------- */
+var punti = {}, gesto = null, ultimoTap = null, rafG = 0;
 function pos(e){ var r = SVG.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
-MAP.addEventListener("touchstart", function(e){
+function quanti(){ return Object.keys(punti).length; }
+function due(){ var k = Object.keys(punti); return [punti[k[0]], punti[k[1]]]; }
+function iniziaPizzico(){
+  var d = due(), a = pos(d[0]), b = pos(d[1]);
+  gesto = {tipo: "pinch", d0: Math.max(10, Math.hypot(a[0]-b[0], a[1]-b[1])), c0: [(a[0]+b[0])/2, (a[1]+b[1])/2], v0: {k: V.k, tx: V.tx, ty: V.ty}, mosso: true};
+}
+function iniziaSposta(e, t0){ gesto = {tipo: "pan", p0: pos(e), cy: e.clientY, v0: {k: V.k, tx: V.tx, ty: V.ty}, t0: t0, mosso: t0 == 0, pagina: null, vel: 0, tl: performance.now()}; }
+MAP.addEventListener("pointerdown", function(e){
   if (e.target.closest("button")) return;
-  var t = e.touches; mosso = false; animId++;
-  if (t.length == 2){ e.preventDefault(); var a = pos(t[0]), b = pos(t[1]); gesto = {tipo: "pinch", d0: Math.hypot(a[0]-b[0], a[1]-b[1]), c0: [(a[0]+b[0])/2, (a[1]+b[1])/2], v0: {k: V.k, tx: V.tx, ty: V.ty}}; }
-  else if (t.length == 1){ var p = pos(t[0]); gesto = {tipo: "pan", p0: p, v0: {k: V.k, tx: V.tx, ty: V.ty}, t0: Date.now()}; }
-}, {passive: false});
-MAP.addEventListener("touchmove", function(e){
-  if (!gesto) return; var t = e.touches;
-  if (gesto.tipo == "pinch" && t.length == 2){
-    e.preventDefault(); var a = pos(t[0]), b = pos(t[1]), d = Math.hypot(a[0]-b[0], a[1]-b[1]), c = [(a[0]+b[0])/2, (a[1]+b[1])/2];
-    var k = Math.max(.9, Math.min(14, gesto.v0.k * d / gesto.d0)), r = k / gesto.v0.k;
-    V = limita({k: k, tx: c[0] - (gesto.c0[0] - gesto.v0.tx) * r, ty: c[1] - (gesto.c0[1] - gesto.v0.ty) * r}); mosso = true; applica(false);
-  } else if (gesto.tipo == "pan" && t.length == 1){
-    var p = pos(t[0]), dx = p[0] - gesto.p0[0], dy = p[1] - gesto.p0[1];
-    if (Math.hypot(dx, dy) > 6) mosso = true;
-    if (V.k > 1.05 || Math.abs(dx) > Math.abs(dy) * 1.4){ if (e.cancelable) e.preventDefault(); if (mosso){ V = limita({k: V.k, tx: gesto.v0.tx + dx, ty: gesto.v0.ty + (V.k > 1.05 ? dy : 0)}); applica(false); } }
+  if (e.pointerType == "mouse" && e.button != 0) return;
+  try { MAP.setPointerCapture(e.pointerId); } catch(_){}
+  punti[e.pointerId] = {clientX: e.clientX, clientY: e.clientY}; animId++; inerzia = 0;
+  if (quanti() >= 2) iniziaPizzico(); else iniziaSposta(e, Date.now());
+});
+MAP.addEventListener("pointermove", function(e){
+  if (!punti[e.pointerId] || !gesto) return;
+  punti[e.pointerId] = {clientX: e.clientX, clientY: e.clientY};
+  if (gesto.tipo == "pinch" && quanti() >= 2){
+    var d = due(), a = pos(d[0]), b = pos(d[1]), dist = Math.hypot(a[0]-b[0], a[1]-b[1]), c = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+    var k = Math.max(KMIN, Math.min(KMAX, gesto.v0.k * dist / gesto.d0)), r = k / gesto.v0.k;
+    V = limita({k: k, tx: c[0] - (gesto.c0[0] - gesto.v0.tx) * r, ty: c[1] - (gesto.c0[1] - gesto.v0.ty) * r}); applica(false);
+  } else if (gesto.tipo == "pan"){
+    var p = pos(e), dx = p[0] - gesto.p0[0], dy = e.clientY - gesto.cy - (gesto.scrollato || 0);
+    if (!gesto.mosso && Math.hypot(dx, e.clientY - gesto.cy) > 6) gesto.mosso = true;
+    if (!gesto.mosso) return;
+    if (gesto.pagina == null) gesto.pagina = V.k <= 1.05 && e.pointerType != "mouse" && Math.abs(e.clientY - gesto.cy) > Math.abs(dx);
+    if (gesto.pagina){ // cartina non ingrandita: il dito fa scorrere la pagina, come fuori dalla cartina
+      var ora = performance.now(), passo = e.clientY - (gesto.uy == null ? gesto.cy : gesto.uy); gesto.uy = e.clientY;
+      window.scrollBy(0, -passo); gesto.vel = -passo / Math.max(8, ora - gesto.tl); gesto.tl = ora;
+    } else { V = limita({k: V.k, tx: gesto.v0.tx + dx, ty: gesto.v0.ty + (p[1] - gesto.p0[1])}); applica(false); }
   }
-}, {passive: false});
-MAP.addEventListener("touchend", function(e){
+});
+function fine(e){
+  if (!punti[e.pointerId]) return;
+  delete punti[e.pointerId];
   if (!gesto) return;
-  if (e.touches.length == 0){
-    if (gesto.tipo == "pan" && !mosso && Date.now() - gesto.t0 < 400){
-      var p = gesto.p0, ora = Date.now();
-      if (ora - ultimoTap < 300){ zoomIn(p, 2.2); ultimoTap = 0; } else { ultimoTap = ora; tocca(p); }
-      e.preventDefault();
-    }
-    gesto = null; programma();
-  } else if (e.touches.length == 1){ var q = pos(e.touches[0]); gesto = {tipo: "pan", p0: q, v0: {k: V.k, tx: V.tx, ty: V.ty}, t0: 0}; mosso = true; }
+  if (quanti() == 1){ var k0 = Object.keys(punti)[0]; iniziaSposta(punti[k0], 0); gesto.pagina = false; return; }
+  if (quanti() > 1){ iniziaPizzico(); return; }
+  var g = gesto; gesto = null;
+  if (e.type == "pointerup" && g.tipo == "pan" && !g.mosso && Date.now() - g.t0 < 450){
+    var p = g.p0, ora = Date.now();
+    if (ultimoTap && ora - ultimoTap.t < 320 && Math.hypot(p[0] - ultimoTap.p[0], p[1] - ultimoTap.p[1]) < 30){ clearTimeout(ultimoTap.timer); ultimoTap = null; zoomIn(p, 2.5); }
+    else { var u = {t: ora, p: p}; u.timer = setTimeout(function(){ if (ultimoTap === u){ ultimoTap = null; tocca(p); } }, 260); ultimoTap = u; }
+    return;
+  }
+  if (g.pagina && Math.abs(g.vel) > .15 && !RIDUCI){ // inerzia dello scorrimento della pagina
+    var v = g.vel * 16, id = ++inerzia;
+    (function passo(){ if (id != inerzia || Math.abs(v) < .5) return; window.scrollBy(0, v); v *= .94; requestAnimationFrame(passo); })();
+  }
+  disegna();
+}
+var inerzia = 0;
+MAP.addEventListener("pointerup", fine); MAP.addEventListener("pointercancel", fine); MAP.addEventListener("lostpointercapture", fine);
+// Safari (iPhone): impedisce che il pizzico ingrandisca la pagina intera; se gli eventi puntatore a due dita non arrivano, usa la scala del gesto
+var g0 = null;
+function dentro(e){ return e.target && MAP.contains(e.target); }
+document.addEventListener("gesturestart", function(e){ if (!dentro(e)) return; e.preventDefault(); var r = SVG.getBoundingClientRect(); g0 = {k: V.k, tx: V.tx, ty: V.ty, c: [e.clientX - r.left, e.clientY - r.top]}; }, {passive: false});
+document.addEventListener("gesturechange", function(e){
+  if (!dentro(e)) return; e.preventDefault();
+  if (!g0 || quanti() >= 2 || !e.scale) return;
+  var k = Math.max(KMIN, Math.min(KMAX, g0.k * e.scale)), r = k / g0.k;
+  V = limita({k: k, tx: g0.c[0] - (g0.c[0] - g0.tx) * r, ty: g0.c[1] - (g0.c[1] - g0.ty) * r}); applica(false);
 }, {passive: false});
-// mouse (computer)
-var md = null;
-MAP.addEventListener("mousedown", function(e){ if (e.target.closest("button")) return; md = {p0: pos(e), v0: {k: V.k, tx: V.tx, ty: V.ty}, m: false}; });
-window.addEventListener("mousemove", function(e){ if (!md) return; var p = pos(e), dx = p[0] - md.p0[0], dy = p[1] - md.p0[1]; if (Math.hypot(dx, dy) > 4) md.m = true; if (md.m){ V = limita({k: V.k, tx: md.v0.tx + dx, ty: md.v0.ty + dy}); applica(false); } });
-window.addEventListener("mouseup", function(e){ if (!md) return; if (!md.m && !("ontouchstart" in window)) tocca(md.p0); md = null; programma(); });
+document.addEventListener("gestureend", function(e){ if (!dentro(e)) return; e.preventDefault(); g0 = null; disegna(); }, {passive: false});
+MAP.addEventListener("touchmove", function(e){ if (e.cancelable) e.preventDefault(); }, {passive: false}); // nessun gesto del browser sulla cartina
+MAP.addEventListener("touchstart", function(e){ if (e.touches.length > 1 && e.cancelable) e.preventDefault(); }, {passive: false});
 MAP.addEventListener("wheel", function(e){ e.preventDefault(); zoomIn(pos(e), Math.exp(-e.deltaY * .0025), true); }, {passive: false});
-MAP.addEventListener("dblclick", function(e){ e.preventDefault(); if (!("ontouchstart" in window)) zoomIn(pos(e), 2.2); });
-function zoomIn(p, f, subito){ var k = Math.max(.9, Math.min(14, V.k * f)), r = k / V.k; vaiA({k: k, tx: p[0] - (p[0] - V.tx) * r, ty: p[1] - (p[1] - V.ty) * r}, !subito); }
+MAP.addEventListener("dblclick", function(e){ e.preventDefault(); });
+MAP.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+function zoomIn(p, f, subito){ var k = Math.max(KMIN, Math.min(KMAX, V.k * f)), r = k / V.k; vaiA({k: k, tx: p[0] - (p[0] - V.tx) * r, ty: p[1] - (p[1] - V.ty) * r}, !subito); }
 $("cc-piu").onclick = function(){ zoomIn([W/2, H/2], 1.8); };
 $("cc-meno").onclick = function(){ zoomIn([W/2, H/2], 1/1.8); };
 $("cc-vista").onclick = function(){ if (V.k > 2.2) vistaInsieme(CORNICE, true); else vistaInsieme([-26, -22, 26, 26], true); };
@@ -949,7 +1005,7 @@ var stile = document.createElement("style"); stile.textContent = "@keyframes cc-
 costruisciBase(); misura(); vistaInsieme(CORNICE, false); aggiornaTutto(); RIDUCI_TMP = RIDUCI; RIDUCI = true; inquadra(); RIDUCI = RIDUCI_TMP;
 var wPrec = W;
 window.addEventListener("resize", function(){ var w = MAP.clientWidth; if (!w || Math.abs(w - wPrec) < 2) return; wPrec = w; misura(); vistaInsieme(CORNICE, false); aggiornaTutto(true); });
-return { stato: S, ridisegna: function(){ aggiornaTutto(true); }, nodiSchermo: function(){ var r = SVG.getBoundingClientRect(); return CACHE.nodi.map(function(o){ return {x: r.left + o.n.px, y: r.top + o.n.py}; }); }, schermo: function(id){ var r = SVG.getBoundingClientRect(), n = NODI[id]; return {x: r.left + (n.px != null ? n.px : sx(n.x)), y: r.top + (n.py != null ? n.py : sy(n.y))}; }, vista: function(v){ S.vista = v; aggiornaTutto(); } };
+return { scala: function(){ return V.k; }, stato: S, ridisegna: function(){ aggiornaTutto(true); }, nodiSchermo: function(){ var r = SVG.getBoundingClientRect(); return CACHE.nodi.map(function(o){ return {x: r.left + o.n.px, y: r.top + o.n.py}; }); }, schermo: function(id){ var r = SVG.getBoundingClientRect(), n = NODI[id]; return {x: r.left + (n.px != null ? n.px : sx(n.x)), y: r.top + (n.py != null ? n.py : sy(n.y))}; }, vista: function(v){ S.vista = v; aggiornaTutto(); } };
 }
 
 /* ===== pagina autonoma: carica i tre file e monta il modulo ===== */
