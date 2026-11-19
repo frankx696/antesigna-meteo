@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Antesigna Meteo</title>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meteo">
+<link rel="apple-touch-icon" href="icona-180.png">
+<link rel="icon" type="image/png" href="icona-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  html,body{margin:0;background:#000;color:#e6e8eb;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+  #barra{position:fixed;left:0;right:0;top:0;z-index:50;background:rgba(0,0,0,.92);border-bottom:1px solid #262a30;padding:calc(env(safe-area-inset-top) + 6px) 10px 6px 10px;display:flex;align-items:center;gap:8px}
+  #barra button{appearance:none;-webkit-appearance:none;border:1px solid #262a30;background:#15181d;color:#9cc9ff;font:600 17px/1 inherit;min-width:44px;height:40px;border-radius:10px;padding:0 10px}
+  #barra button:disabled{color:#4a5560}
+  #barra button#agg{background:#13263a;border-color:#1f3a57;color:#fff;font-size:19px}
+  #stato{flex:1;min-width:0;font-size:12px;line-height:1.3;color:#8b949e;text-align:center;overflow:hidden}
+  #stato b{display:block;color:#fff;font-size:13px;white-space:nowrap}
+  #quando{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #contenuto{padding-top:calc(env(safe-area-inset-top) + 54px);padding-bottom:env(safe-area-inset-bottom);min-height:100vh}
+  #avviso{display:none;margin:10px 16px 0 16px;padding:10px 12px;border-radius:10px;background:#3a2a12;color:#ffd166;font-size:13px;line-height:1.4}
+  summary::-webkit-details-marker{display:none}
+  .gira{display:inline-block;animation:g 0.8s linear infinite}@keyframes g{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="barra">
+  <button id="ind" aria-label="Indietro">‹</button>
+  <button id="ava" aria-label="Avanti">›</button>
+  <div id="stato"><b>Antesigna Meteo</b><span id="quando">carico…</span></div>
+  <button id="inv" aria-label="Invia a un amico">↗</button>
+  <button id="agg" aria-label="Aggiorna"><span id="frec">↻</span></button>
+</div>
+<div id="contenuto"><div id="avviso"></div><div id="pagina"></div></div>
+<script>
+(function(){
+  "use strict";
+  var SITO = "sentinellabollettino.wordpress.com";
+  var API = "https://public-api.wordpress.com/wp/v2/sites/" + SITO + "/pages/";
+  var VISTE = { compatta: {id: 458, url: "https://" + SITO + "/antesigna-meteo/"}, completa: {id: 557, url: "https://" + SITO + "/antesigna-meteo-completo/"} };
+  var VECCHIO_MS = 5 * 60 * 1000;          // al ritorno in primo piano ricarico se sono passati piu' di 5 minuti
+  var vista = "compatta", ultimo = {}, pos = 0, max = 0;   // pos/max: posizione nella cronologia interna (per abilitare avanti/indietro)
+  var $ = function(i){ return document.getElementById(i); };
+
+  function salva(k, v){ try{ localStorage.setItem("am_" + k, JSON.stringify(v)); }catch(e){} }
+  function leggi(k){ try{ return JSON.parse(localStorage.getItem("am_" + k)); }catch(e){ return null; } }
+
+  function ora(t){ var d = new Date(t); return ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2); }
+  function giorno(t){ var d = new Date(t), o = new Date(); return d.toDateString() === o.toDateString() ? "oggi" : d.toLocaleDateString("it-IT", {weekday:"short", day:"numeric", month:"short"}); }
+
+  function mostra(v, dati, ancora){
+    var p = $("pagina"); p.innerHTML = dati.html;
+    // le barre di pulsanti scritte dentro la pagina WordPress qui sono doppie: le tolgo (ci sono quelle fisse in alto)
+    Array.prototype.forEach.call(p.querySelectorAll('a[href*="?agg="]'), function(a){ if(a.parentNode && a.parentNode.parentNode) a.parentNode.parentNode.removeChild(a.parentNode); });
+    var inv = p.querySelector("#invia"); if(inv && inv.parentNode) inv.parentNode.removeChild(inv);
+    $("quando").textContent = "di " + giorno(dati.mod) + " " + ora(dati.mod) + " · letta " + ora(dati.letto);
+    if(ancora){ var el = document.getElementById(ancora); if(el){ if(el.tagName === "DETAILS") el.open = true; setTimeout(function(){ window.scrollTo(0, el.getBoundingClientRect().top + window.pageYOffset - 70); }, 60); return; } }
+  }
+
+  function carica(v, opz){
+    opz = opz || {};
+    var c = leggi(v);
+    if(c && !opz.silenzioso && opz.subito !== false){ vista = v; mostra(v, c, opz.ancora); }
+    $("frec").className = "gira";
+    return fetch(API + VISTE[v].id + "?_fields=modified_gmt,content&_=" + Date.now(), {cache: "no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("risposta " + r.status); return r.json(); })
+      .then(function(j){
+        var dati = {html: j.content.rendered, mod: Date.parse(j.modified_gmt + "Z"), letto: Date.now()};
+        var cambiata = !c || c.mod !== dati.mod;
+        salva(v, dati); ultimo[v] = Date.now(); $("avviso").style.display = "none";
+        if(vista === v || !c){ vista = v; if(cambiata || !c || opz.forza){ var y = window.pageYOffset; mostra(v, dati, opz.ancora); if(!opz.ancora && c && !opz.inalto) window.scrollTo(0, y); } else { $("quando").textContent = "di " + giorno(dati.mod) + " " + ora(dati.mod) + " · letta " + ora(dati.letto); } }
+      })
+      .catch(function(e){
+        var a = $("avviso"); a.style.display = "block";
+        a.textContent = c ? "Non riesco a collegarmi adesso: questa è l'ultima previsione che avevo scaricato (" + giorno(c.mod) + " alle " + ora(c.mod) + "). Tocca Aggiorna per riprovare." : "Non riesco a scaricare la previsione (" + e.message + "). Controlla la connessione e tocca Aggiorna.";
+      })
+      .then(function(){ $("frec").className = ""; });
+  }
+
+  function vai(v, ancora, daCronologia){
+    vista = v;
+    if(!daCronologia){ pos += 1; max = pos; history.pushState({v: v, a: ancora || "", n: pos}, "", "#" + v + (ancora ? "/" + ancora : "")); }
+    pulsanti();
+    if(!ancora) window.scrollTo(0, 0);
+    carica(v, {ancora: ancora, forza: true, inalto: !ancora});
+  }
+  function pulsanti(){ $("ind").disabled = pos <= 0; $("ava").disabled = pos >= max; }
+
+  // i collegamenti dentro la pagina: quelli verso le due pagine meteo restano nell'applicazione
+  document.addEventListener("click", function(ev){
+    var a = ev.target.closest ? ev.target.closest("a[href]") : null; if(!a) return;
+    var h = a.getAttribute("href") || "";
+    if(h.charAt(0) === "#"){ ev.preventDefault(); if(h === "#inizio") window.scrollTo(0, 0); else { var el = document.getElementById(h.slice(1)); if(el){ if(el.tagName === "DETAILS") el.open = true; window.scrollTo(0, el.getBoundingClientRect().top + window.pageYOffset - 70); } } return; }
+    var senza = h.split("#")[0].split("?")[0], anc = h.indexOf("#") >= 0 ? h.split("#")[1] : "";
+    if(senza === VISTE.completa.url){ ev.preventDefault(); vai("completa", anc); }
+    else if(senza === VISTE.compatta.url){ ev.preventDefault(); vai("compatta", anc); }
+    else if(/^https?:/.test(h)){ a.setAttribute("target", "_blank"); a.setAttribute("rel", "noopener"); }
+  });
+  window.addEventListener("popstate", function(ev){
+    var s = ev.state || {v: "compatta", a: "", n: 0}; pos = s.n || 0; vista = s.v; pulsanti();
+    var c = leggi(s.v); if(c) mostra(s.v, c, s.a); if(!s.a) window.scrollTo(0, 0);
+    carica(s.v, {silenzioso: true, ancora: s.a});
+  });
+  $("ind").addEventListener("click", function(){ history.back(); });
+  $("ava").addEventListener("click", function(){ history.forward(); });
+  $("inv").addEventListener("click", function(){
+    var u = location.href.split("#")[0], t = "Meteo su misura per Via Fasella 17, San Raffaele Cimena: previsione a 15 giorni, aggiornata ogni mattina.";
+    if(navigator.share){ navigator.share({title: "Antesigna Meteo", text: t, url: u}).catch(function(){}); }
+    else { location.href = "mailto:?subject=" + encodeURIComponent("Meteo Via Fasella") + "&body=" + encodeURIComponent(t + " " + u); }
+  });
+  $("agg").addEventListener("click", function(){ carica(vista, {subito: false}); });
+
+  function seVecchio(){ if(document.visibilityState === "visible" && (!ultimo[vista] || Date.now() - ultimo[vista] > VECCHIO_MS)) carica(vista, {silenzioso: true}); }
+  document.addEventListener("visibilitychange", seVecchio);
+  window.addEventListener("pageshow", seVecchio);
+  window.addEventListener("focus", seVecchio);
+  window.addEventListener("online", seVecchio);
+  setInterval(seVecchio, 60 * 1000);
+
+  // avvio: sempre dall'edizione compatta, o dalla vista scritta nell'indirizzo
+  var m = (location.hash || "").match(/^#(compatta|completa)(?:\/(.+))?$/);
+  history.replaceState({v: m ? m[1] : "compatta", a: m && m[2] ? m[2] : "", n: 0}, "", location.hash || "#compatta");
+  pulsanti();
+  carica(m ? m[1] : "compatta", {ancora: m && m[2], forza: true});
+})();
+</script>
+</body>
+</html>
