@@ -24,6 +24,34 @@
   #contenuto{padding-top:calc(env(safe-area-inset-top) + 54px);padding-bottom:env(safe-area-inset-bottom);min-height:100vh}
   #avviso{display:none;margin:10px 16px 0 16px;padding:10px 12px;border-radius:10px;background:#3a2a12;color:#ffd166;font-size:13px;line-height:1.4}
   summary::-webkit-details-marker{display:none}
+  #domande{padding:6px 16px calc(env(safe-area-inset-bottom) + 40px) 16px;font-size:15px;line-height:1.5}
+  #pagina:empty + #domande{display:none}
+  #domande h2{font-size:19px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.01em;margin:8px 0 4px 0}
+  #domande .dq-sotto{font-size:13px;color:#8b949e;margin:0 0 10px 0;line-height:1.4}
+  #domande .dq-scheda{background:#15181d;border:1px solid #262a30;border-radius:12px;padding:12px}
+  #dq-testo{box-sizing:border-box;display:block;width:100%;min-height:84px;resize:vertical;background:#0b0d10;color:#e6e8eb;border:1px solid #262a30;border-radius:10px;padding:10px;font:16px/1.4 inherit;font-family:inherit}
+  #dq-testo:focus{outline:none;border-color:#1f3a57;box-shadow:0 0 0 2px #13263a}
+  #domande .dq-riga{display:flex;align-items:center;gap:10px;margin-top:8px}
+  #dq-conta{flex:1;font-size:12px;color:#8b949e}
+  #dq-invia{appearance:none;-webkit-appearance:none;border:1px solid #1f3a57;background:#13263a;color:#fff;font:600 15px/1 inherit;font-family:inherit;height:42px;min-width:96px;padding:0 18px;border-radius:10px}
+  #dq-invia:disabled{color:#6b7785}
+  #dq-esito{display:none;margin-top:10px;padding:9px 11px;border-radius:10px;font-size:14px;line-height:1.4}
+  #dq-esito.ok{display:block;background:#13263a;color:#cfe6ff}
+  #dq-esito.no{display:block;background:#3a2a12;color:#ffd166}
+  #domande .dq-nota{font-size:12px;color:#6b7785;margin:8px 0 0 0;line-height:1.4}
+  #dq-elenco .dq-scheda{margin-top:10px}
+  #domande .dq-dom{color:#fff;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+  #domande .dq-quando{font-size:12px;color:#8b949e;margin-top:2px}
+  #domande .dq-attesa{margin-top:8px;font-size:13px;color:#9cc9ff}
+  #domande .dq-ritardo{color:#ffd166}
+  #domande .dq-risp{margin-top:10px;border-top:1px solid #262a30;padding-top:2px}
+  #domande .dq-risp p{margin:8px 0 0 0;overflow-wrap:anywhere}
+  #domande .dq-cert{display:inline-block;margin-top:10px;padding:3px 9px;border-radius:99px;background:#1c2026;font-size:12px;font-weight:600;white-space:nowrap}
+  #domande .dq-perche{font-size:13px;color:#8b949e;margin-top:4px;line-height:1.4}
+  #domande .dq-gt{font-size:13px;font-weight:600;color:#e6e8eb;margin:12px 0 2px 0}
+  #domande svg{display:block;width:100%;height:auto}
+  #domande .dq-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:#aeb6c0;margin-top:2px}
+  #domande .dq-leg i{display:inline-block;vertical-align:middle;margin-right:5px}
   .gira{display:inline-block;animation:g 0.8s linear infinite}@keyframes g{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -35,7 +63,19 @@
   <button id="inv" aria-label="Invia a un amico">↗</button>
   <button id="agg" aria-label="Aggiorna"><span id="frec">↻</span></button>
 </div>
-<div id="contenuto"><div id="avviso"></div><div id="pagina"></div></div>
+<div id="contenuto"><div id="avviso"></div><div id="pagina"></div>
+<div id="domande">
+  <h2>Fai una domanda</h2>
+  <p class="dq-sotto">Una domanda sul tempo a Via Fasella: per esempio «Domenica fra le 10 e le 13 piove?».</p>
+  <div class="dq-scheda">
+    <label for="dq-testo" style="position:absolute;left:-9999px">La tua domanda</label>
+    <textarea id="dq-testo" maxlength="300" rows="3" placeholder="Scrivi qui la tua domanda"></textarea>
+    <div class="dq-riga"><span id="dq-conta">0/300</span><button id="dq-invia" type="button">Invia</button></div>
+    <div id="dq-esito" role="status" aria-live="polite"></div>
+    <p class="dq-nota">Risponde un programma automatico tre volte al giorno (mattina, tarda mattinata, pomeriggio). Domande e risposte sono pubblicate senza nome: non scrivere dati personali.</p>
+  </div>
+  <div id="dq-elenco"></div>
+</div></div>
 <script>
 (function(){
   "use strict";
@@ -141,6 +181,230 @@
   history.replaceState({v: m ? m[1] : "compatta", a: m && m[2] ? m[2] : "", n: 0}, "", location.hash || "#compatta");
   pulsanti();
   carica(m ? m[1] : "compatta", {ancora: m && m[2], forza: true});
+})();
+</script>
+<script>
+/* «Fai una domanda»: invio al modulo Google, risposte lette dalla pagina WordPress antesigna-risposte.
+   Programma separato da quello della previsione: se qui qualcosa va storto, la previsione continua a funzionare. */
+(function(){
+  "use strict";
+  var MODULO = "https://docs.google.com/forms/d/e/1FAIpQLSdYbkcGYdFNC2cRx9AoShaGXd0zzz64jLdPxkM3lwl77TakHA/formResponse";
+  var CAMPO_CODICE = "entry.452472786", CAMPO_DOMANDA = "entry.42787642";
+  var RISPOSTE = "https://public-api.wordpress.com/wp/v2/sites/sentinellabollettino.wordpress.com/pages?slug=antesigna-risposte&_fields=content&_=";
+  var MIN = 5, MAX = 300, AL_GIORNO = 5, TENUTE = 5, OGNI_MS = 2 * 60 * 1000;
+  // controlli quotidiani (ora italiana): il compito parte alle 6:52, 10:22, 15:22 e risponde entro 07:10, 10:40, 15:40;
+  // una domanda inviata meno di 3 minuti prima della partenza passa al controllo dopo
+  var CONTROLLI = [["06:49", "07:10"], ["10:19", "10:40"], ["15:19", "15:40"]];
+  var $ = function(i){ return document.getElementById(i); };
+  // memoria del telefono; se il telefono non lascia salvare (navigazione privata) si tiene tutto solo finche' l'app resta aperta
+  var memoria = {}, lsOk = (function(){ try{ localStorage.setItem("am_dq_prova", "1"); localStorage.removeItem("am_dq_prova"); return true; }catch(e){ return false; } })();
+  function salva(k, v){ if(lsOk){ try{ localStorage.setItem("am_dq_" + k, JSON.stringify(v)); return; }catch(e){} } memoria[k] = v; }
+  function leggi(k){ if(lsOk){ try{ return JSON.parse(localStorage.getItem("am_dq_" + k)); }catch(e){ return null; } } return memoria.hasOwnProperty(k) ? memoria[k] : null; }
+
+  // ora italiana come testo "AAAA-MM-GG HH:MM", qualunque sia il fuso del telefono
+  function roma(t){
+    var d = new Date(t === undefined ? Date.now() : t);
+    try{
+      var p = {}; new Intl.DateTimeFormat("en-GB", {timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23"})
+        .formatToParts(d).forEach(function(x){ p[x.type] = x.value; });
+      return p.year + "-" + p.month + "-" + p.day + " " + (p.hour === "24" ? "00" : p.hour) + ":" + p.minute;
+    }catch(e){
+      var z = function(n){ return ("0" + n).slice(-2); };
+      return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()) + " " + z(d.getHours()) + ":" + z(d.getMinutes());
+    }
+  }
+  function domaniDi(g){ var d = new Date(g + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); }
+  // scadenza della risposta: {g: giorno, h: "HH:MM"}
+  function scadenza(adesso){
+    var g = adesso.slice(0, 10), h = adesso.slice(11);
+    for(var i = 0; i < CONTROLLI.length; i++) if(h < CONTROLLI[i][0]) return {g: g, h: CONTROLLI[i][1]};
+    return {g: domaniDi(g), h: CONTROLLI[0][1]};
+  }
+  function frase(sc, adesso){
+    var g = adesso.slice(0, 10);
+    return sc.g === g ? "entro le ore " + sc.h : (sc.g === domaniDi(g) ? "domani entro le ore " + sc.h : "entro le ore " + sc.h + " del " + sc.g.slice(8, 10) + "/" + sc.g.slice(5, 7));
+  }
+
+  function esadecimale(buf){ return Array.prototype.map.call(new Uint8Array(buf), function(b){ return ("0" + b.toString(16)).slice(-2); }).join(""); }
+  // codice segreto del telefono (128 bit casuali, creato una volta) e identificativo pubblico = primi 32 esadecimali di SHA-256(codice)
+  function identita(){
+    var c = leggi("codice"), id = leggi("id");
+    if(c && id && /^[0-9a-f]{32}$/.test(c) && /^[0-9a-f]{32}$/.test(id)) return Promise.resolve(id);
+    if(!(window.crypto && crypto.getRandomValues && crypto.subtle)) return Promise.reject(new Error("cifratura"));
+    var b = new Uint8Array(16); crypto.getRandomValues(b); c = esadecimale(b);
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(c)).then(function(h){ id = esadecimale(h).slice(0, 32); salva("codice", c); salva("id", id); return id; });
+  }
+
+  function elenco(){ var e = leggi("elenco"); return Array.isArray(e) ? e : []; }
+
+  function esito(tipo, testo){ var e = $("dq-esito"); e.className = tipo; e.textContent = testo; }
+  function conta(){ $("dq-conta").textContent = $("dq-testo").value.length + "/" + MAX; }
+
+  function invia(){
+    var t = $("dq-testo").value.replace(/\s+/g, " ").trim(), adesso = roma(), oggi = adesso.slice(0, 10);
+    if(t.length < MIN){ esito("no", "La domanda è troppo corta: scrivi almeno " + MIN + " caratteri."); return; }
+    if(t.length > MAX){ esito("no", "La domanda è troppo lunga: al massimo " + MAX + " caratteri."); return; }
+    var c = leggi("conta"); if(!c || c.g !== oggi) c = {g: oggi, n: 0};
+    if(c.n >= AL_GIORNO){ esito("no", "Oggi hai già fatto " + AL_GIORNO + " domande: potrai farne altre domani."); return; }
+    if(navigator.onLine === false){ esito("no", "Non c'è rete: riprova più tardi."); return; }
+    var bot = $("dq-invia"); bot.disabled = true; bot.textContent = "Invio…"; esito("", "");
+    var n = Date.now().toString(36), codice;
+    identita().then(function(id){
+      codice = id + "-" + n;
+      var corpo = new URLSearchParams(); corpo.append(CAMPO_CODICE, codice); corpo.append(CAMPO_DOMANDA, t);
+      // il modulo Google non permette di leggere la sua risposta (no-cors): se la rete ha portato la richiesta, la promessa si risolve
+      return fetch(MODULO, {method: "POST", mode: "no-cors", body: corpo});
+    }).then(function(){
+      var sc = scadenza(adesso), e = elenco();
+      e.push({c: codice, d: t, a: adesso, s: sc, st: "attesa"}); while(e.length > TENUTE) e.shift();
+      salva("elenco", e); c.n += 1; salva("conta", c);
+      $("dq-testo").value = ""; conta();
+      esito("ok", "Domanda ricevuta. La risposta arriverà " + frase(sc, adesso) + ".");
+      disegna();
+    }).catch(function(err){
+      if(err && err.message === "cifratura") esito("no", "Questo telefono non riesce a preparare la domanda: aggiorna il sistema o il browser e riprova.");
+      else esito("no", navigator.onLine === false ? "Non c'è rete: riprova più tardi." : "Non sono riuscito a inviare la domanda: controlla la connessione e riprova più tardi.");
+    }).then(function(){ bot.disabled = false; bot.textContent = "Invia"; });
+  }
+
+  // ------------------------------------------------------------ risposte
+  function decodifica(testo){
+    // WordPress puo' trasformare "4x5" in "4×5" e aggiungere spazi o a capo: si rimette tutto com'era
+    var b = (testo || "").replace(/×/g, "x").replace(/[^A-Za-z0-9+\/=]/g, "");
+    var bin = atob(b), u = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    var r = JSON.parse(new TextDecoder("utf-8", {fatal: true}).decode(u));
+    if(!r || typeof r !== "object" || !Array.isArray(r.testo)) throw new Error("forma");
+    return r;
+  }
+  var ultimoControllo = 0, inCorso = false;
+  function controlla(forza){
+    var e = elenco(), attese = e.filter(function(x){ return x.st === "attesa"; });
+    if(!attese.length || inCorso || document.visibilityState === "hidden") return;
+    if(!forza && Date.now() - ultimoControllo < OGNI_MS) return;
+    inCorso = true; ultimoControllo = Date.now();
+    fetch(RISPOSTE + Date.now(), {cache: "no-store"}).then(function(r){ if(!r.ok) throw new Error("risposta " + r.status); return r.json(); })
+      .then(function(a){
+        var html = a && a[0] && a[0].content ? a[0].content.rendered : ""; if(!html) return;
+        var doc = new DOMParser().parseFromString(html, "text/html"), cambiato = false, e2 = elenco();
+        e2.forEach(function(x){
+          if(x.st !== "attesa") return;
+          var b = doc.getElementById("r-" + x.c); if(!b) return;
+          var p = b.querySelector("p"), t = p ? p.textContent : b.textContent;
+          try{ x.r = decodifica(t); x.st = "risposta"; }catch(err){ x.st = "illeggibile"; }
+          cambiato = true;
+        });
+        if(cambiato){ salva("elenco", e2); disegna(); }
+      })
+      .catch(function(){ /* nessuna rete o pagina non ancora creata: si riprova alla prossima apertura */ })
+      .then(function(){ inCorso = false; });
+  }
+
+  function el(tag, cls, testo){ var x = document.createElement(tag); if(cls) x.className = cls; if(testo !== undefined && testo !== null) x.textContent = String(testo); return x; }
+  function giornoOra(a){ // "AAAA-MM-GG HH:MM" -> "ven 20/11 alle 21:05"
+    var gg = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"], d = new Date(a.slice(0, 10) + "T12:00:00Z");
+    return gg[d.getUTCDay()] + " " + a.slice(8, 10) + "/" + a.slice(5, 7) + " alle " + a.slice(11, 16);
+  }
+  var CERT = {alta: ["Certezza alta", "#4da3ff"], media: ["Certezza media", "#ffc93c"], bassa: ["Certezza bassa", "#aeb6c0"]};
+
+  function disegna(){
+    var box = $("dq-elenco"); box.textContent = "";
+    var e = elenco().slice().reverse(), adesso = roma();
+    e.forEach(function(x){
+      var s = el("div", "dq-scheda");
+      s.appendChild(el("div", "dq-dom", "«" + x.d + "»"));
+      s.appendChild(el("div", "dq-quando", "Inviata " + giornoOra(x.a)));
+      if(x.st === "attesa"){
+        var tardi = adesso > x.s.g + " " + x.s.h;
+        s.appendChild(el("div", "dq-attesa" + (tardi ? " dq-ritardo" : ""), tardi ? "La risposta è in ritardo: controllo di nuovo ogni volta che apri l'applicazione." : "In attesa di risposta, " + frase(x.s, adesso) + "."));
+      } else if(x.st === "illeggibile"){
+        s.appendChild(el("div", "dq-attesa dq-ritardo", "La risposta è arrivata ma non si riesce a leggere. Prova a rifare la domanda."));
+      } else if(x.r){
+        var r = x.r, rp = el("div", "dq-risp");
+        r.testo.forEach(function(par){ if(par) rp.appendChild(el("p", "", par)); });
+        s.appendChild(rp);
+        var c = CERT[r.certezza];
+        if(c){ var pill = el("span", "dq-cert", c[0]); pill.style.color = c[1]; s.appendChild(pill); }
+        if(r.certezza_perche) s.appendChild(el("div", "dq-perche", r.certezza_perche));
+        if(r.grafico){ try{ grafico(s, r.grafico); }catch(err){} }
+        if(r.note) s.appendChild(el("div", "dq-perche", r.note));
+        if(r.emessa) s.appendChild(el("div", "dq-quando", "Calcolata sulla previsione del " + String(r.emessa).slice(8, 10) + "/" + String(r.emessa).slice(5, 7)));
+      }
+      box.appendChild(s);
+    });
+  }
+
+  // ------------------------------------------------------------ grafico: barre = mm (con forchetta min-max), linea = probabilita'
+  var NS = "http://www.w3.org/2000/svg", BLU = "#4da3ff", FORC = "#d6ebff", ARANCIO = "#ffb000", GRIGLIA = "#262a30", SCRITTE = "#8b949e";
+  function sv(tag, a, testo){ var x = document.createElementNS(NS, tag); for(var k in a) x.setAttribute(k, a[k]); if(testo !== undefined) x.textContent = testo; return x; }
+  function num(v){ var x = Number(v); return v === null || v === undefined || !isFinite(x) ? null : x; }
+  function passo(max){ var c = [0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 100], i = 0; while(i < c.length - 1 && max / c[i] > 4) i++; return c[i]; }
+  function grafico(dove, g){
+    var et = Array.isArray(g.ore) ? g.ore : (Array.isArray(g.giorni) ? g.giorni : null); if(!et || !et.length) return;
+    var N = Math.min(et.length, 96), mm = (g.mm || []).slice(0, N).map(num), lo = (g.mm_min || []).slice(0, N).map(num),
+        hi = (g.mm_max || []).slice(0, N).map(num), pr = (g.prob || []).slice(0, N).map(num);
+    var haMm = mm.some(function(v){ return v !== null; }), haPr = pr.some(function(v){ return v !== null; });
+    if(!haMm && !haPr) return;
+    var W = 340, H = 206, L = 30, R = haPr ? 32 : 8, T = 22, B = 38, w = W - L - R, h = H - T - B;
+    var top = 0; mm.concat(hi).forEach(function(v){ if(v !== null && v > top) top = v; });
+    var st = passo(Math.max(top, 1)), ymax = Math.max(st * Math.ceil(Math.max(top, 1) / st), st);
+    var svg = sv("svg", {viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": g.titolo || "grafico"});
+    var y = function(v){ return T + h - h * v / ymax; }, yp = function(v){ return T + h - h * v / 100; }, cx = function(i){ return L + w * (i + 0.5) / N; };
+    // griglia e asse sinistro (mm)
+    for(var v = 0; v <= ymax + 1e-9; v += st){
+      svg.appendChild(sv("line", {x1: L, x2: L + w, y1: y(v), y2: y(v), stroke: GRIGLIA, "stroke-width": 1}));
+      if(haMm) svg.appendChild(sv("text", {x: L - 4, y: y(v) + 3.5, "text-anchor": "end", "font-size": 10, fill: BLU}, String(Math.round(v * 10) / 10).replace(".", ",")));
+    }
+    if(haMm) svg.appendChild(sv("text", {x: L - 4, y: T - 11, "text-anchor": "end", "font-size": 10, fill: BLU}, "mm"));
+    if(haPr){ [0, 50, 100].forEach(function(p){ svg.appendChild(sv("text", {x: L + w + 4, y: yp(p) + 3.5, "font-size": 10, fill: ARANCIO}, p + "%")); }); }
+    // barre e forchette
+    var bw = Math.max(2, Math.min(22, w / N * 0.62));
+    for(var i = 0; i < N; i++){
+      if(mm[i] !== null){ var hb = Math.max(mm[i] > 0 ? 1.5 : 0, y(0) - y(mm[i])); svg.appendChild(sv("rect", {x: cx(i) - bw / 2, y: y(0) - hb, width: bw, height: hb, rx: 1.5, fill: BLU})); }
+      if(lo[i] !== null && hi[i] !== null && hi[i] > lo[i]){
+        var a = cx(i), q = Math.min(bw / 2, 4);
+        svg.appendChild(sv("line", {x1: a, x2: a, y1: y(lo[i]), y2: y(hi[i]), stroke: FORC, "stroke-width": 1.2}));
+        svg.appendChild(sv("line", {x1: a - q, x2: a + q, y1: y(hi[i]), y2: y(hi[i]), stroke: FORC, "stroke-width": 1.2}));
+        svg.appendChild(sv("line", {x1: a - q, x2: a + q, y1: y(lo[i]), y2: y(lo[i]), stroke: FORC, "stroke-width": 1.2}));
+      }
+    }
+    // linea della probabilita' (tratteggiata, cosi' si distingue anche senza colori)
+    if(haPr){
+      var d = "", su = false;
+      for(var j = 0; j < N; j++){ if(pr[j] === null){ su = false; continue; } d += (su ? "L" : "M") + cx(j).toFixed(1) + " " + yp(Math.max(0, Math.min(100, pr[j]))).toFixed(1); su = true; }
+      svg.appendChild(sv("path", {d: d, fill: "none", stroke: ARANCIO, "stroke-width": 2, "stroke-dasharray": "5 3", "stroke-linejoin": "round"}));
+      if(N <= 30) for(var k = 0; k < N; k++) if(pr[k] !== null) svg.appendChild(sv("circle", {cx: cx(k), cy: yp(Math.max(0, Math.min(100, pr[k]))), r: 2.6, fill: ARANCIO}));
+    }
+    // etichette dell'asse orizzontale: al massimo 7, sempre la prima
+    var ogni = Math.max(1, Math.ceil(N / 7));
+    svg.appendChild(sv("line", {x1: L, x2: L + w, y1: y(0), y2: y(0), stroke: "#4a5560", "stroke-width": 1}));
+    for(var m = 0; m < N; m += ogni){
+      var parti = String(et[m]).split(" ");
+      var tx = sv("text", {x: cx(m), y: T + h + 14, "text-anchor": "middle", "font-size": 10, fill: SCRITTE});
+      tx.appendChild(sv("tspan", {x: cx(m), dy: 0}, parti[0]));
+      if(parti.length > 1) tx.appendChild(sv("tspan", {x: cx(m), dy: 12}, parti.slice(1).join(" ")));
+      svg.appendChild(tx);
+    }
+    if(g.titolo) dove.appendChild(el("div", "dq-gt", g.titolo));
+    dove.appendChild(svg);
+    var leg = el("div", "dq-leg");
+    if(haMm){ var a1 = el("span"), q1 = el("i"); q1.style.cssText = "width:10px;height:10px;border-radius:2px;background:" + BLU; a1.appendChild(q1); a1.appendChild(document.createTextNode(lo.some(function(v){ return v !== null; }) ? "pioggia in mm (linea chiara: da minimo a massimo)" : "pioggia in mm")); leg.appendChild(a1); }
+    if(haPr){ var a2 = el("span"), q2 = el("i"); q2.style.cssText = "width:16px;height:0;border-top:2px dashed " + ARANCIO; a2.appendChild(q2); a2.appendChild(document.createTextNode("probabilità di pioggia (scala a destra)")); leg.appendChild(a2); }
+    dove.appendChild(leg);
+  }
+
+  // ------------------------------------------------------------ avvio
+  try{
+    $("dq-testo").addEventListener("input", conta);
+    $("dq-invia").addEventListener("click", invia);
+    disegna();
+    controlla(true);
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible"){ disegna(); controlla(false); } });
+    window.addEventListener("pageshow", function(){ controlla(false); });
+    window.addEventListener("online", function(){ controlla(true); });
+    setInterval(function(){ controlla(false); }, 60 * 1000);
+    window.__dq = {decodifica: decodifica, scadenza: scadenza, roma: roma, disegna: disegna, controlla: controlla};   // per le prove automatiche
+  }catch(e){}
 })();
 </script>
 </body>
