@@ -1,34 +1,35 @@
-Settimana con pioggia giovedì (5 mm in tutta la settimana); minime fra -2° e 4°, massime fra 5° e 9°. La seconda settimana ha una probabilità media di reggere del 68 %: discretamente affidabile.
+Prima settimana asciutta; minime fra -2° e 3°, massime fra 6° e 8°. La seconda settimana ha una probabilità media di reggere del 69 %: discretamente affidabile.
 
-Giovedì 26/11: pioggia debole, 4°/9°, pioggia 4,4 mm (89 %), sole 0 h · probabilità che regga 85 %
-Venerdì 27/11: nebbia, 3°/6°, asciutto, sole 0 h · probabilità che regga 85 %
-Sabato 28/11: pioggia debole e schiarite, 2°/9°, pioggia 0,2 mm (6 %), sole 7 h · probabilità che regga 82 %
-Domenica 29/11: nebbia al mattino, poi sole, 1°/7°, asciutto, sole 4 h · probabilità che regga 81 %
-Lunedì 30/11: nebbia, poi schiarite, 2°/6°, asciutto, sole 4 h · probabilità che regga 79 %
-Martedì 01/12: nebbia, poi schiarite, 0°/5°, asciutto, sole 2 h · probabilità che regga 76 %
-Mercoledì 02/12: nebbia al mattino, poi sole, -2°/6°, asciutto, sole 8 h · probabilità che regga 77 %
-Giovedì 03/12: nebbia al mattino, poi sole, -3°/6°, asciutto, sole 8 h · probabilità che regga 74 %
-Venerdì 04/12: nebbia al mattino, poi sole, -3°/6°, asciutto, sole 9 h · probabilità che regga 73 %
-Sabato 05/12: sereno, -3°/8°, asciutto, sole 9 h · probabilità che regga 73 %
-Domenica 06/12: poco nuvoloso, -2°/7°, asciutto, sole 9 h · probabilità che regga 72 %
-Lunedì 07/12: sereno, -2°/8°, asciutto, sole 9 h · probabilità che regga 70 %
-Martedì 08/12: coperto, -3°/1°, pioggia poco probabile (20 %), fino a 4,8 mm nella stima principale, sole 0 h · probabilità che regga 62 %
-Mercoledì 09/12: nebbia al mattino, poi sole, -5°/5°, asciutto, sole 9 h · probabilità che regga 59 %
-Giovedì 10/12: nebbia al mattino, poi sole, -5°/3°, asciutto, sole 9 h · probabilità che regga 58 %
+Venerdì 27/11: nuvoloso, 3°/8°, asciutto, sole 0 h · probabilità che regga 87 %
+Sabato 28/11: parz. nuvoloso, 3°/8°, asciutto, sole 7 h · probabilità che regga 86 %
+Domenica 29/11: nebbia al mattino, poi sole, 0°/7°, asciutto, sole 7 h · probabilità che regga 83 %
+Lunedì 30/11: nebbia, poi schiarite, 2°/6°, asciutto, sole 0 h · probabilità che regga 83 %
+Martedì 01/12: nebbia al mattino, poi sole, 0°/6°, asciutto, sole 7 h · probabilità che regga 83 %
+Mercoledì 02/12: nebbia al mattino, poi sole, -2°/6°, asciutto, sole 8 h · probabilità che regga 81 %
+Giovedì 03/12: nebbia al mattino, poi sole, -2°/7°, asciutto, sole 7 h · probabilità che regga 74 %
+Venerdì 04/12: nebbia, poi schiarite, -2°/7°, asciutto, sole 5 h · probabilità che regga 73 %
+Sabato 05/12: parz. nuvoloso, -1°/6°, asciutto, sole 5 h · probabilità che regga 73 %
+Domenica 06/12: nuvoloso, 1°/6°, pioggia poco probabile (5 %), fino a 0,6 mm nella stima principale, sole 6 h · probabilità che regga 76 %
+Lunedì 07/12: pioviggine, 0°/3°, pioggia 0,6 mm (10 %), sole 0 h · probabilità che regga 71 %
+Martedì 08/12: nebbia al mattino, poi sole, -2°/9°, asciutto, sole 8 h · probabilità che regga 70 %
+Mercoledì 09/12: sereno, -2°/9°, asciutto, sole 9 h · probabilità che regga 69 %
+Giovedì 10/12: poco nuvoloso, 0°/6°, asciutto, sole 8 h · probabilità che regga 59 %
+Venerdì 11/12: coperto, 0°/6°, asciutto, sole 2 h · probabilità che regga 58 %
 
-Gelo (minima della notte, dalle 18 del giorno prima alle 12 del giorno indicato): Domenica 29/11: minima della notte 1,1° alle 06, 0 ore sotto zero, senza gelo, mattino coperto; Mercoledì 02/12: minima della notte -1,7° alle 06, 9 ore sotto zero, gelo moderato, mattino variabile; Giovedì 03/12: minima della notte -3,3° alle 07, 13 ore sotto zero, gelo forte, mattino soleggiato; Venerdì 04/12: minima della notte -3,5° alle 05, 15 ore sotto zero, gelo forte, mattino soleggiato; Sabato 05/12: minima della notte -3,4° alle 05, 14 ore sotto zero, gelo forte, mattino soleggiato; Domenica 06/12: minima della notte -2,6° alle 05, 13 ore sotto zero, gelo forte, mattino soleggiato; Lunedì 07/12: minima della notte -2,2° alle 06, 10 ore sotto zero, gelo moderato, mattino soleggiato; Martedì 08/12: minima della notte -2,3° alle 00, 15 ore sotto zero, gelo forte, mattino coperto; Mercoledì 09/12: minima della notte -4,6° alle 06, 14 ore sotto zero, gelo forte, mattino soleggiato; Giovedì 10/12: minima della notte -5,0° alle 04, 17 ore sotto zero, gelo severo, mattino soleggiato. Freddo continuativo: 8 notti di fila sotto −2 °C da gio 03/12 a gio 10/12; 9 notti di fila sotto 0 °C da mer 02/12 a gio 10/12. Probabilità di 3 notti di fila sotto −2 °C: 90%, sotto −5 °C: 18%. Sole: nessun periodo di giorni bui consecutivi (probabilità di 3 giorni bui di fila: 4%).
+Gelo (minima della notte, dalle 18 del giorno prima alle 12 del giorno indicato): Domenica 29/11: minima della notte 0,4° alle 08, 0 ore sotto zero, senza gelo, mattino variabile; Martedì 01/12: minima della notte -0,3° alle 07, 2 ore sotto zero, gelo lieve, mattino variabile; Mercoledì 02/12: minima della notte -1,8° alle 06, 10 ore sotto zero, gelo moderato, mattino variabile; Giovedì 03/12: minima della notte -2,3° alle 05, 12 ore sotto zero, gelo forte, mattino variabile; Venerdì 04/12: minima della notte -1,0° alle 05, 6 ore sotto zero, gelo lieve, mattino coperto; Sabato 05/12: minima della notte -1,6° alle 05, 10 ore sotto zero, gelo moderato, mattino soleggiato; Lunedì 07/12: minima della notte 0,6° alle 05, 0 ore sotto zero, senza gelo, mattino coperto; Martedì 08/12: minima della notte -1,8° alle 06, 8 ore sotto zero, gelo moderato, mattino soleggiato; Mercoledì 09/12: minima della notte -2,4° alle 05, 8 ore sotto zero, gelo moderato, mattino soleggiato; Giovedì 10/12: minima della notte -0,4° alle 05, 4 ore sotto zero, gelo lieve, mattino soleggiato; Venerdì 11/12: minima della notte -0,3° alle 01, 5 ore sotto zero, gelo lieve, mattino coperto. Freddo continuativo: 5 notti di fila sotto 0 °C da mar 01/12 a sab 05/12; 4 notti di fila sotto 0 °C da mar 08/12 a ven 11/12. Probabilità di 3 notti di fila sotto −2 °C: 33%, sotto −5 °C: 0%. Sole: nessun periodo di giorni bui consecutivi (probabilità di 3 giorni bui di fila: 4%).
 
-Rispetto a ieri: minime praticamente invariate, massime in calo (variazione media delle minime -0,1 °C, delle massime -1,4 °C); pioggia complessiva in aumento (+6,1 mm sui giorni in comune); verdetto piove/non piove cambiato in mar 08/12 (ora piove); rischio di gelo in diminuzione (variazione più grande -49 punti percentuali); affidabilità media in aumento (variazione media +2,1 punti percentuali).
+Rispetto a ieri: minime in rialzo, massime in lieve rialzo (variazione media delle minime +1,3 °C, delle massime +0,8 °C); parte della variazione delle minime (in media +0,5 °C sui giorni in comune) dipende dal cambio della correzione applicata, non dai modelli; pioggia complessiva in diminuzione (-3,8 mm sui giorni in comune); la pioggia prevista è sparita dai giorni in comune; verdetto piove/non piove cambiato in mar 08/12 (ora asciutto); rischio di gelo in diminuzione (variazione più grande -86 punti percentuali); affidabilità media in aumento (variazione media +3,4 punti percentuali).
 
-Clima: Prima settimana: minime più calde di 1,4 °C e massime più fredde di 2,0 °C rispetto alla media 2016–2025 dello stesso periodo; pioggia prevista 5 mm contro 5 mm, valore mediano degli ultimi dieci anni nella stessa settimana. Dall'ottavo al 15° giorno: minime più fredde di 2,1 °C, massime più fredde di 2,3 °C; pioggia prevista 5 mm contro 7 mm, valore mediano degli ultimi dieci anni negli stessi 8 giorni. In questo periodo dell'anno, negli ultimi dieci anni, la minima è scesa sotto zero nel 63% delle notti.
+Clima: Prima settimana: minime più calde di 0,7 °C e massime più fredde di 1,8 °C rispetto alla media 2016–2025 dello stesso periodo; pioggia prevista 0 mm contro 12 mm, valore mediano degli ultimi dieci anni nella stessa settimana. Dall'ottavo al 15° giorno: minime più calde di 0,5 °C, massime più fredde di 1,1 °C; pioggia prevista 1 mm contro 8 mm, valore mediano degli ultimi dieci anni negli stessi 8 giorni. In questo periodo dell'anno, negli ultimi dieci anni, la minima è scesa sotto zero nel 65% delle notti.
 
-Oltre i 15 giorni (modello esteso ECMWF): settimana 14/12–20/12 più calda del normale (+1,0 °C); settimana 21/12–27/12 più calda del normale (+2,0 °C); settimana 28/12–03/01 più calda del normale (+1,9 °C)
+Oltre i 15 giorni (modello esteso ECMWF): settimana 14/12–20/12 vicina alla norma, segnale debole (+0,7 °C); settimana 21/12–27/12 più calda del normale (+1,8 °C); settimana 28/12–03/01 più calda del normale (+1,9 °C); settimana 04/01–10/01 più calda del normale (+1,8 °C)
 
 Da tenere d'occhio:
-Domenica 29/11: minima 1° — possibile brina/gelata nelle zone basse (in collina qualche grado in più)
-Lunedì 30/11: minima 2° — possibile brina/gelata nelle zone basse (in collina qualche grado in più)
+Domenica 29/11: minima 0° — possibile brina/gelata nelle zone basse (in collina qualche grado in più)
 Martedì 01/12: minima 0° — possibile brina/gelata nelle zone basse (in collina qualche grado in più)
 Mercoledì 02/12: minima -2° — possibile brina/gelata nelle zone basse (in collina qualche grado in più)
-Gelo da mercoledì 02/12 a giovedì 10/12: 9 notti di fila sotto zero, di cui 8 sotto −2 °C da giovedì 03/12 a giovedì 10/12; la più fredda è la notte fra mercoledì 09/12 e giovedì 10/12, minima della notte -5,0°; probabilità (51 scenari ECMWF) di almeno 3 notti di fila sotto −2 °C entro i 15 giorni: 90 % — seconda settimana: affidabilità media 68 %
+Giovedì 03/12: minima -2° — possibile brina/gelata nelle zone basse (in collina qualche grado in più)
+Gelo da martedì 01/12 a sabato 05/12: 5 notti di fila sotto zero; la più fredda è la notte fra mercoledì 02/12 e giovedì 03/12, minima della notte -2,3°; probabilità (51 scenari ECMWF) di almeno 3 notti di fila sotto −2 °C entro i 15 giorni: 33 % — seconda settimana: affidabilità media 69 %
+Gelo da martedì 08/12 a venerdì 11/12: 4 notti di fila sotto zero; la più fredda è la notte fra martedì 08/12 e mercoledì 09/12, minima della notte -2,4°; probabilità (51 scenari ECMWF) di almeno 3 notti di fila sotto −2 °C entro i 15 giorni: 33 % — seconda settimana: affidabilità media 69 %
 
-Com'è andata — Previsione emessa giovedì 19/11/2026, verificata su 6 giorni: minime: errore medio assoluto 1,6 °C, bias 0,0 °C (nessuna tendenza), entro ±2 °C in 5 giorni su 6 (83 %); massime: errore medio assoluto 0,7 °C, bias -0,5 °C (troppo fredde), entro ±2 °C in 5 giorni su 6 (83 %); pioggia sì/no indovinata in 5 giorni su 6 (83 %). Affidabilità dichiarata in media 81 %; è andata bene (minima e massima entro ±2 °C e pioggia sì/no giusta) in 3 giorni su 6 (50 %).
+Com'è andata — Previsione emessa venerdì 20/11/2026, verificata su 6 giorni: minime: errore medio assoluto 2,2 °C, bias -0,9 °C (troppo fredde), entro ±2 °C in 3 giorni su 6 (50 %); massime: errore medio assoluto 1,1 °C, bias -0,7 °C (troppo fredde), entro ±2 °C in 5 giorni su 6 (83 %); pioggia sì/no indovinata in 5 giorni su 6 (83 %). Affidabilità dichiarata in media 80 %; è andata bene (minima e massima entro ±2 °C e pioggia sì/no giusta) in 3 giorni su 6 (50 %).
